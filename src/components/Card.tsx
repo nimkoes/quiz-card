@@ -43,54 +43,120 @@ export function CardComponent({
     const lines = text.split('\n');
     const result: ReactNode[] = [];
 
-    const processInlineMarkdown = (line: string): ReactNode[] => {
+    // 재귀적으로 마크다운을 처리하는 함수
+    const processInlineMarkdown = (text: string, keyPrefix: string = ''): ReactNode[] => {
       const parts: ReactNode[] = [];
-      let lastIndex = 0;
+      let remainingText = text;
       let key = 0;
 
-      // 굵은 글씨와 기울임을 함께 처리하는 정규식
-      // **굵은글씨** 또는 *기울임* 또는 ***굵고기울임***
-      const markdownRegex = /(\*\*\*)(.+?)\1|(\*\*)(.+?)\3|(\*)(.+?)\5/g;
-      let match;
+      while (remainingText.length > 0) {
+        let bestMatch: { start: number; end: number; type: string; content: string } | null = null;
 
-      while ((match = markdownRegex.exec(line)) !== null) {
-        // 매치 앞의 일반 텍스트
-        if (match.index > lastIndex) {
-          parts.push(line.substring(lastIndex, match.index));
+        // 1. ***굵고기울임*** 패턴 찾기
+        const boldItalicMatch = remainingText.match(/\*\*\*(.+?)\*\*\*/);
+        if (boldItalicMatch && boldItalicMatch.index !== undefined) {
+          bestMatch = {
+            start: boldItalicMatch.index,
+            end: boldItalicMatch.index + boldItalicMatch[0].length,
+            type: 'boldItalic',
+            content: boldItalicMatch[1],
+          };
         }
 
-        if (match[1]) {
-          // ***굵고기울임***
-          parts.push(
-            <strong key={key++} className="font-bold italic">
-              {match[2]}
-            </strong>
-          );
-        } else if (match[3]) {
-          // **굵은글씨** (기울임도 적용)
-          parts.push(
-            <strong key={key++} className="font-bold italic">
-              {match[4]}
-            </strong>
-          );
-        } else if (match[5]) {
-          // *기울임*
-          parts.push(
-            <em key={key++} className="italic">
-              {match[6]}
-            </em>
-          );
+        // 2. **굵은글씨** 패턴 찾기
+        const boldMatch = remainingText.match(/\*\*(.+?)\*\*/);
+        if (boldMatch && boldMatch.index !== undefined) {
+          if (!bestMatch || boldMatch.index < bestMatch.start) {
+            bestMatch = {
+              start: boldMatch.index,
+              end: boldMatch.index + boldMatch[0].length,
+              type: 'bold',
+              content: boldMatch[1],
+            };
+          }
         }
 
-        lastIndex = match.index + match[0].length;
+        // 3. __밑줄__ 패턴 찾기
+        const underlineMatch = remainingText.match(/__(.+?)__/);
+        if (underlineMatch && underlineMatch.index !== undefined) {
+          if (!bestMatch || underlineMatch.index < bestMatch.start) {
+            bestMatch = {
+              start: underlineMatch.index,
+              end: underlineMatch.index + underlineMatch[0].length,
+              type: 'underline',
+              content: underlineMatch[1],
+            };
+          }
+        }
+
+        // 4. *기울임* 패턴 찾기 (단, **나 ***의 일부가 아닌 경우만)
+        const italicMatch = remainingText.match(/\*([^*]+?)\*/);
+        if (italicMatch && italicMatch.index !== undefined) {
+          // 앞뒤로 *가 없어야 함 (단일 *만)
+          const beforeChar = italicMatch.index > 0 ? remainingText[italicMatch.index - 1] : '';
+          const afterIndex = italicMatch.index + italicMatch[0].length;
+          const afterChar = afterIndex < remainingText.length ? remainingText[afterIndex] : '';
+          if (beforeChar !== '*' && afterChar !== '*') {
+            if (!bestMatch || italicMatch.index < bestMatch.start) {
+              bestMatch = {
+                start: italicMatch.index,
+                end: italicMatch.index + italicMatch[0].length,
+                type: 'italic',
+                content: italicMatch[1],
+              };
+            }
+          }
+        }
+
+        if (bestMatch) {
+          // 매치 앞의 일반 텍스트 추가 (재귀적으로 처리)
+          if (bestMatch.start > 0) {
+            const beforeText = remainingText.substring(0, bestMatch.start);
+            parts.push(...processInlineMarkdown(beforeText, `${keyPrefix}-before-${key}`));
+          }
+
+          // 매치된 내용을 재귀적으로 처리 (중첩된 패턴 처리)
+          const innerContent = processInlineMarkdown(bestMatch.content, `${keyPrefix}-inner-${key}`);
+
+          // 매치된 내용 렌더링
+          if (bestMatch.type === 'boldItalic') {
+            parts.push(
+              <strong key={`${keyPrefix}-${key++}`} className="font-bold italic">
+                {innerContent}
+              </strong>
+            );
+          } else if (bestMatch.type === 'bold') {
+            parts.push(
+              <strong key={`${keyPrefix}-${key++}`} className="font-bold italic">
+                {innerContent}
+              </strong>
+            );
+          } else if (bestMatch.type === 'underline') {
+            parts.push(
+              <u key={`${keyPrefix}-${key++}`} className="underline decoration-pokemon-red decoration-2">
+                {innerContent}
+              </u>
+            );
+          } else if (bestMatch.type === 'italic') {
+            parts.push(
+              <em key={`${keyPrefix}-${key++}`} className="italic">
+                {innerContent}
+              </em>
+            );
+          }
+
+          // 처리한 부분 제거
+          remainingText = remainingText.substring(bestMatch.end);
+        } else {
+          // 매칭되는 패턴이 없으면 나머지 텍스트 추가하고 종료
+          if (remainingText.length > 0) {
+            parts.push(remainingText);
+          }
+          break;
+        }
       }
 
-      // 남은 텍스트
-      if (lastIndex < line.length) {
-        parts.push(line.substring(lastIndex));
-      }
-
-      return parts.length > 0 ? parts : [line];
+      return parts.length > 0 ? parts : [text];
     };
 
     // 목록 구조를 재귀적으로 생성하는 함수
