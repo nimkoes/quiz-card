@@ -116,9 +116,9 @@ export function CardViewer({
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-h-0">
       {/* 카드 카운터 및 즐겨찾기 관리 버튼 */}
-      <div className="px-4 py-2 bg-pokemon-bg border-b-4 border-pokemon-border flex items-center justify-between">
+      <div className="px-4 py-2 bg-pokemon-bg border-b-4 border-pokemon-border flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="text-sm text-pokemon-text font-bold">
             {currentIndex + 1} / {filteredCards.length}
@@ -146,7 +146,7 @@ export function CardViewer({
       </div>
       
       {/* 카드 컴포넌트 */}
-      <div className="flex-1 overflow-hidden relative">
+      <div className="flex-1 min-h-0 overflow-hidden relative">
         {currentCard && (
           <div
             className={`absolute inset-0 transition-opacity duration-300 ${

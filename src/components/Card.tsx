@@ -284,9 +284,9 @@ export function CardComponent({
     return <>{result}</>;
   };
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* 카드 본문 */}
-      <div className="flex-1 min-h-0 flex items-stretch p-6 md:p-8 bg-pokemon-bg overflow-hidden">
+      <div className="flex-1 min-h-0 flex items-stretch p-3 md:p-8 bg-pokemon-bg overflow-hidden">
         <div className="w-full max-w-4xl h-full flex items-stretch">
           <div className="bg-pokemon-card rounded-lg shadow-lg p-6 md:p-8 w-full h-full flex flex-col transition-transform duration-300 hover:shadow-xl border-4 border-pokemon-border overflow-hidden min-h-0">
             {/* 카드 내용 */}
