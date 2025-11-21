@@ -1,3 +1,4 @@
+import { type ReactNode } from 'react';
 import type { Card } from '../types';
 
 interface CardProps {
@@ -36,32 +37,212 @@ export function CardComponent({
       onToggleFavorite();
     }
   };
+
+  // 마크다운을 HTML로 변환 (굵은 글씨, 기울임, 목록)
+  const renderMarkdown = (text: string): ReactNode => {
+    const lines = text.split('\n');
+    const result: ReactNode[] = [];
+
+    const processInlineMarkdown = (line: string): ReactNode[] => {
+      const parts: ReactNode[] = [];
+      let lastIndex = 0;
+      let key = 0;
+
+      // 굵은 글씨와 기울임을 함께 처리하는 정규식
+      // **굵은글씨** 또는 *기울임* 또는 ***굵고기울임***
+      const markdownRegex = /(\*\*\*)(.+?)\1|(\*\*)(.+?)\3|(\*)(.+?)\5/g;
+      let match;
+
+      while ((match = markdownRegex.exec(line)) !== null) {
+        // 매치 앞의 일반 텍스트
+        if (match.index > lastIndex) {
+          parts.push(line.substring(lastIndex, match.index));
+        }
+
+        if (match[1]) {
+          // ***굵고기울임***
+          parts.push(
+            <strong key={key++} className="font-bold italic">
+              {match[2]}
+            </strong>
+          );
+        } else if (match[3]) {
+          // **굵은글씨** (기울임도 적용)
+          parts.push(
+            <strong key={key++} className="font-bold italic">
+              {match[4]}
+            </strong>
+          );
+        } else if (match[5]) {
+          // *기울임*
+          parts.push(
+            <em key={key++} className="italic">
+              {match[6]}
+            </em>
+          );
+        }
+
+        lastIndex = match.index + match[0].length;
+      }
+
+      // 남은 텍스트
+      if (lastIndex < line.length) {
+        parts.push(line.substring(lastIndex));
+      }
+
+      return parts.length > 0 ? parts : [line];
+    };
+
+    // 목록 구조를 재귀적으로 생성하는 함수
+    const buildList = (items: Array<{ level: number; content: string; index: number }>, startIndex: number): { nodes: ReactNode; endIndex: number } => {
+      if (startIndex >= items.length) {
+        return { nodes: null, endIndex: startIndex };
+      }
+
+      const currentLevel = items[startIndex].level;
+      const listItems: ReactNode[] = [];
+      let i = startIndex;
+
+      while (i < items.length) {
+        if (items[i].level < currentLevel) {
+          // 상위 레벨로 돌아갔으므로 종료
+          break;
+        }
+
+        if (items[i].level === currentLevel) {
+          // 현재 레벨의 항목
+          const itemContent = processInlineMarkdown(items[i].content);
+          const children: ReactNode[] = [];
+          let nextIndex = i + 1;
+
+          // 하위 레벨이 있는지 확인
+          if (nextIndex < items.length && items[nextIndex].level > currentLevel) {
+            const childResult = buildList(items, nextIndex);
+            children.push(childResult.nodes);
+            nextIndex = childResult.endIndex;
+          }
+
+          listItems.push(
+            <li key={`item-${items[i].index}`}>
+              {itemContent}
+              {children.length > 0 && (
+                <ul className="list-disc list-inside">
+                  {children}
+                </ul>
+              )}
+            </li>
+          );
+
+          i = nextIndex;
+        } else {
+          i++;
+        }
+      }
+
+      return {
+        nodes: (
+          <ul key={`list-${startIndex}`} className="list-disc list-inside ml-2">
+            {listItems}
+          </ul>
+        ),
+        endIndex: i,
+      };
+    };
+
+    // 모든 줄을 파싱하여 목록 항목과 일반 텍스트로 분류
+    const parsedItems: Array<{ type: 'list' | 'text' | 'blank'; level?: number; content?: string; lineIndex: number }> = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmedLine = line.trim();
+      const indentMatch = line.match(/^(\s*)/);
+      const indent = indentMatch ? indentMatch[1].length : 0;
+
+      if (trimmedLine.startsWith('- ')) {
+        const listContent = trimmedLine.substring(2);
+        const level = Math.floor(indent / 2);
+        parsedItems.push({
+          type: 'list',
+          level,
+          content: listContent,
+          lineIndex: i,
+        });
+      } else if (trimmedLine) {
+        parsedItems.push({
+          type: 'text',
+          content: trimmedLine,
+          lineIndex: i,
+        });
+      } else {
+        parsedItems.push({
+          type: 'blank',
+          lineIndex: i,
+        });
+      }
+    }
+
+    // 파싱된 항목들을 렌더링
+    let i = 0;
+    while (i < parsedItems.length) {
+      const item = parsedItems[i];
+
+      if (item.type === 'list') {
+        // 연속된 목록 항목들을 수집
+        const listItems: Array<{ level: number; content: string; index: number }> = [];
+        while (i < parsedItems.length && parsedItems[i].type === 'list') {
+          listItems.push({
+            level: parsedItems[i].level!,
+            content: parsedItems[i].content!,
+            index: parsedItems[i].lineIndex,
+          });
+          i++;
+        }
+
+        // 목록 구조 생성
+        const listResult = buildList(listItems, 0);
+        result.push(listResult.nodes);
+      } else if (item.type === 'text') {
+        result.push(
+          <div key={`line-${item.lineIndex}`}>
+            {processInlineMarkdown(item.content!)}
+          </div>
+        );
+        i++;
+      } else {
+        // 빈 줄
+        result.push(<br key={`br-${item.lineIndex}`} />);
+        i++;
+      }
+    }
+
+    return <>{result}</>;
+  };
   return (
     <div className="flex flex-col h-full">
       {/* 카드 본문 */}
-      <div className="flex-1 flex items-center justify-center p-6 md:p-8 bg-pokemon-bg">
-        <div className="w-full max-w-4xl">
-          <div className="bg-pokemon-card rounded-lg shadow-lg p-6 md:p-8 min-h-[300px] flex flex-col transition-transform duration-300 hover:shadow-xl border-4 border-pokemon-border">
+      <div className="flex-1 flex items-center justify-center p-6 md:p-8 bg-pokemon-bg overflow-hidden">
+        <div className="w-full max-w-4xl h-full flex items-center">
+          <div className="bg-pokemon-card rounded-lg shadow-lg p-6 md:p-8 w-full h-full flex flex-col transition-transform duration-300 hover:shadow-xl border-4 border-pokemon-border overflow-hidden">
             {/* 카드 내용 */}
-            <div className="flex-1 overflow-y-auto mb-4 scroll-smooth">
-              <div className="text-pokemon-text text-lg leading-relaxed whitespace-pre-wrap font-medium">
-                {card.content}
+            <div className="flex-1 overflow-y-auto scroll-smooth min-h-0">
+              <div className="text-pokemon-text text-[0.9em] leading-relaxed font-medium">
+                {renderMarkdown(card.content)}
               </div>
             </div>
             
             {/* 추가 설명 */}
             {card.explanation && (
-              <div className="mt-4 pt-4 border-t-2 border-pokemon-border">
+              <div className="mt-4 pt-4 border-t-2 border-pokemon-border flex-shrink-0">
                 <button
                   onClick={onToggleExplanation}
-                  className="text-sm text-pokemon-blue hover:text-pokemon-red mb-2 font-bold transition-colors"
+                  className="text-sm text-pokemon-blue hover:text-pokemon-red font-bold transition-colors"
                 >
                   {showExplanation ? '추가 설명 숨기기' : '추가 설명 보기'}
                 </button>
                 {showExplanation && (
-                  <div className="mt-2 p-4 bg-pokemon-cardAlt rounded-lg border-2 border-pokemon-border">
-                    <div className="text-pokemon-text text-sm leading-relaxed whitespace-pre-wrap">
-                      {card.explanation}
+                  <div className="mt-2 p-4 bg-pokemon-cardAlt rounded-lg border-2 border-pokemon-border max-h-[40vh] overflow-y-auto">
+                    <div className="text-pokemon-text text-[0.7em] leading-relaxed">
+                      {renderMarkdown(card.explanation)}
                     </div>
                   </div>
                 )}
