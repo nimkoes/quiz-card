@@ -115,10 +115,11 @@ export async function loadAllCards(): Promise<ParsedData> {
  */
 export async function loadCategoryCards(category: string, filenames: string[]): Promise<Card[]> {
   const allCards: Card[] = [];
+  const baseUrl = import.meta.env.BASE_URL;
   
   for (const filename of filenames) {
     try {
-      const response = await fetch(`/content/${category}/${filename}`);
+      const response = await fetch(`${baseUrl}content/${category}/${filename}`);
       if (!response.ok) {
         console.warn(`Failed to load ${category}/${filename}`);
         continue;
@@ -140,7 +141,8 @@ export async function loadCategoryCards(category: string, filenames: string[]): 
  */
 export async function getCategories(): Promise<string[]> {
   try {
-    const response = await fetch('/content/index.json');
+    const baseUrl = import.meta.env.BASE_URL;
+    const response = await fetch(`${baseUrl}content/index.json`);
     if (response.ok) {
       const data = await response.json();
       return data.categories || [];
@@ -157,7 +159,8 @@ export async function getCategories(): Promise<string[]> {
  */
 export async function getCategoryFiles(category: string): Promise<string[]> {
   try {
-    const response = await fetch('/content/index.json');
+    const baseUrl = import.meta.env.BASE_URL;
+    const response = await fetch(`${baseUrl}content/index.json`);
     if (response.ok) {
       const data = await response.json();
       return data.files?.[category] || [];
