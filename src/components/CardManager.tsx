@@ -148,10 +148,10 @@ export function CardManager({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-pokemon-bg rounded-lg shadow-xl max-w-6xl w-full h-[90vh] flex flex-col border-2 border-pokemon-border">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 md:p-4">
+      <div className="bg-pokemon-bg rounded-lg shadow-xl max-w-6xl w-full h-[95vh] md:h-[90vh] flex flex-col border-2 border-pokemon-border max-h-screen">
         {/* 헤더 */}
-        <div className="p-4 border-b-2 border-pokemon-border flex items-center justify-between">
+        <div className="p-2 md:p-4 border-b-2 border-pokemon-border flex items-center justify-between flex-shrink-0">
           <h2 className="text-[1.2rem] md:text-2xl font-bold text-pokemon-text">
             전체 카드 관리 ({filteredAndSortedCards.length}개)
           </h2>
@@ -166,7 +166,7 @@ export function CardManager({
         </div>
 
         {/* 검색 및 필터 바 */}
-        <div className="p-4 border-b-2 border-pokemon-border space-y-3">
+        <div className="p-2 md:p-4 border-b-2 border-pokemon-border space-y-2 md:space-y-3 flex-shrink-0">
           {/* 검색 */}
           <div className="flex gap-2">
             <input
@@ -219,7 +219,7 @@ export function CardManager({
 
         {/* 액션 바 */}
         {hasToken && (onRemoveFavorites || onAddFavorites) && (
-          <div className="p-4 border-b-2 border-pokemon-border flex items-center justify-between gap-4">
+          <div className="p-2 md:p-4 border-b-2 border-pokemon-border flex items-center justify-between gap-4 flex-shrink-0">
             <div className="flex items-center gap-4">
               <button
                 onClick={handleSelectAll}
@@ -259,7 +259,7 @@ export function CardManager({
         )}
 
         {/* 목록 */}
-        <div className="flex-1 overflow-y-auto p-4 bg-pokemon-bg">
+        <div className="flex-1 min-h-0 overflow-y-auto p-2 md:p-4 bg-pokemon-bg">
           {filteredAndSortedCards.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <p className="text-[0.7rem] md:text-sm text-pokemon-text font-bold">
