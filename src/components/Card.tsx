@@ -284,11 +284,11 @@ export function CardComponent({
     return <>{result}</>;
   };
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* 카드 본문 */}
-      <div className="flex-1 flex items-center justify-center p-6 md:p-8 bg-pokemon-bg overflow-hidden">
-        <div className="w-full max-w-4xl h-full flex items-center">
-          <div className="bg-pokemon-card rounded-lg shadow-lg p-6 md:p-8 w-full h-full flex flex-col transition-transform duration-300 hover:shadow-xl border-4 border-pokemon-border overflow-hidden">
+      <div className="flex-1 min-h-0 flex items-stretch p-6 md:p-8 bg-pokemon-bg overflow-hidden">
+        <div className="w-full max-w-4xl h-full flex items-stretch">
+          <div className="bg-pokemon-card rounded-lg shadow-lg p-6 md:p-8 w-full h-full flex flex-col transition-transform duration-300 hover:shadow-xl border-4 border-pokemon-border overflow-hidden min-h-0">
             {/* 카드 내용 */}
             <div className="flex-1 overflow-y-auto scroll-smooth min-h-0">
               <div className="text-pokemon-text text-[0.9em] leading-relaxed font-medium">
@@ -319,7 +319,7 @@ export function CardComponent({
       </div>
       
       {/* 네비게이션 및 액션 버튼 */}
-      <div className="flex items-center justify-between p-4 bg-pokemon-bg border-t-4 border-pokemon-border">
+      <div className="flex items-center justify-between p-4 bg-pokemon-bg border-t-4 border-pokemon-border flex-shrink-0">
         <button
           onClick={onPrevious}
           disabled={!onPrevious}
