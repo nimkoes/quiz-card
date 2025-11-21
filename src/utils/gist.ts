@@ -1,0 +1,189 @@
+const GIST_FILENAME = 'quiz-card-favorites.json';
+const GIST_DESCRIPTION = 'Quiz Card Favorites';
+
+export interface GistResponse {
+  id: string;
+  description?: string;
+  files: {
+    [key: string]: {
+      content: string;
+    };
+  };
+}
+
+/**
+ * GitHub Personal Access Token을 가져옵니다.
+ */
+export function getToken(): string | null {
+  return localStorage.getItem('github_token');
+}
+
+/**
+ * GitHub Personal Access Token을 저장합니다.
+ */
+export function setToken(token: string): void {
+  localStorage.setItem('github_token', token);
+}
+
+/**
+ * GitHub Personal Access Token을 삭제합니다.
+ */
+export function removeToken(): void {
+  localStorage.removeItem('github_token');
+}
+
+/**
+ * GitHub API를 사용하여 Gist를 생성합니다.
+ */
+export async function createGist(token: string, content: Array<{ cardId: string; addedAt: string }>): Promise<string> {
+  const response = await fetch('https://api.github.com/gists', {
+    method: 'POST',
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      description: GIST_DESCRIPTION,
+      public: false,
+      files: {
+        [GIST_FILENAME]: {
+          content: JSON.stringify(content, null, 2),
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to create Gist');
+  }
+
+  const data: GistResponse = await response.json();
+  return data.id;
+}
+
+/**
+ * GitHub API를 사용하여 Gist를 업데이트합니다.
+ */
+export async function updateGist(token: string, gistId: string, content: Array<{ cardId: string; addedAt: string }>): Promise<void> {
+  const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      description: GIST_DESCRIPTION,
+      files: {
+        [GIST_FILENAME]: {
+          content: JSON.stringify(content, null, 2),
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to update Gist');
+  }
+}
+
+/**
+ * GitHub API를 사용하여 Gist를 조회합니다.
+ */
+export async function getGist(token: string, gistId: string): Promise<Array<{ cardId: string; addedAt: string }>> {
+  const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to get Gist');
+  }
+
+  const data: GistResponse = await response.json();
+  const file = data.files[GIST_FILENAME];
+  
+  if (!file) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(file.content);
+    // 이전 형식 (string[])과 호환성 유지
+    if (Array.isArray(parsed)) {
+      if (parsed.length > 0 && typeof parsed[0] === 'string') {
+        // 이전 형식: string[] -> 새 형식으로 변환
+        return parsed.map(cardId => ({
+          cardId,
+          addedAt: new Date().toISOString(),
+        }));
+      }
+      return parsed;
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * 사용자의 모든 Gist를 조회하여 Quiz Card Favorites Gist를 찾습니다.
+ */
+export async function findFavoritesGist(token: string): Promise<string | null> {
+  const response = await fetch('https://api.github.com/gists', {
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to list Gists');
+  }
+
+  const gists: GistResponse[] = await response.json();
+  const favoritesGist = gists.find(
+    gist => gist.files[GIST_FILENAME] && gist.description === GIST_DESCRIPTION
+  );
+
+  return favoritesGist?.id || null;
+}
+
+/**
+ * 토큰의 유효성을 검증합니다.
+ */
+export async function validateToken(token: string): Promise<boolean> {
+  try {
+    const response = await fetch('https://api.github.com/user', {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+      },
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Gist ID를 localStorage에 저장합니다.
+ */
+export function saveGistId(gistId: string): void {
+  localStorage.setItem('favorites_gist_id', gistId);
+}
+
+/**
+ * localStorage에서 Gist ID를 가져옵니다.
+ */
+export function getGistId(): string | null {
+  return localStorage.getItem('favorites_gist_id');
+}
+
