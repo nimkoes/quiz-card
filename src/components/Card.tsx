@@ -216,7 +216,7 @@ export function CardComponent({
     };
 
     // 모든 줄을 파싱하여 목록 항목과 일반 텍스트로 분류
-    const parsedItems: Array<{ type: 'list' | 'text' | 'blank'; level?: number; content?: string; lineIndex: number }> = [];
+    const parsedItems: Array<{ type: 'list' | 'text' | 'blank' | 'table-row' | 'table-separator'; level?: number; content?: string; lineIndex: number }> = [];
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -224,7 +224,28 @@ export function CardComponent({
       const indentMatch = line.match(/^(\s*)/);
       const indent = indentMatch ? indentMatch[1].length : 0;
 
-      if (trimmedLine.startsWith('- ')) {
+      // 테이블 행 감지: | 또는 ||로 시작하고 끝나는 줄
+      if ((trimmedLine.startsWith('|') && trimmedLine.endsWith('|')) || 
+          (trimmedLine.startsWith('||') && trimmedLine.endsWith('||'))) {
+        // 구분선 감지: |---| 또는 |:---| 같은 패턴
+        if (/^\|+[\s:|-]+\|+$/.test(trimmedLine)) {
+          parsedItems.push({
+            type: 'table-separator',
+            lineIndex: i,
+          });
+        } else {
+          // || 형식을 | 형식으로 정규화 (앞뒤 | 제거 후 다시 | 추가)
+          let normalizedLine = trimmedLine;
+          if (trimmedLine.startsWith('||') && trimmedLine.endsWith('||')) {
+            normalizedLine = '|' + trimmedLine.slice(2, -2) + '|';
+          }
+          parsedItems.push({
+            type: 'table-row',
+            content: normalizedLine,
+            lineIndex: i,
+          });
+        }
+      } else if (trimmedLine.startsWith('- ')) {
         const listContent = trimmedLine.substring(2);
         const level = Math.floor(indent / 2);
         parsedItems.push({
@@ -247,12 +268,99 @@ export function CardComponent({
       }
     }
 
+    // 테이블 렌더링 함수
+    const renderTable = (rows: string[], startIndex: number): ReactNode => {
+      if (rows.length === 0) return null;
+
+      // 셀 분리 함수
+      const parseCells = (row: string): string[] => {
+        // |로 구분된 셀들을 추출 (앞뒤 | 제거)
+        const cells = row.slice(1, -1).split('|').map(cell => cell.trim());
+        return cells;
+      };
+
+      // 첫 번째 행을 헤더로 처리
+      const headerCells = parseCells(rows[0]);
+      const headerRow = (
+        <tr key="header">
+          {headerCells.map((cell, idx) => (
+            <th key={idx} className="border-2 border-pokemon-border px-3 py-2 bg-pokemon-cardAlt text-pokemon-text font-bold text-left">
+              {processInlineMarkdown(cell)}
+            </th>
+          ))}
+        </tr>
+      );
+
+      // 나머지 행들을 본문으로 처리
+      const bodyRows = rows.slice(1).map((row, rowIdx) => {
+        const cells = parseCells(row);
+        return (
+          <tr key={rowIdx}>
+            {cells.map((cell, cellIdx) => (
+              <td key={cellIdx} className="border-2 border-pokemon-border px-3 py-2 bg-pokemon-card text-pokemon-text">
+                {processInlineMarkdown(cell)}
+              </td>
+            ))}
+          </tr>
+        );
+      });
+
+      return (
+        <table key={`table-${startIndex}`} className="w-full border-collapse my-4">
+          <thead>{headerRow}</thead>
+          <tbody>{bodyRows}</tbody>
+        </table>
+      );
+    };
+
     // 파싱된 항목들을 렌더링
     let i = 0;
     while (i < parsedItems.length) {
       const item = parsedItems[i];
 
-      if (item.type === 'list') {
+      if (item.type === 'table-row' || item.type === 'table-separator') {
+        // 연속된 테이블 행들을 수집
+        const headerRows: string[] = [];
+        const bodyRows: string[] = [];
+        let foundSeparator = false;
+        const startTableIndex = i;
+        
+        // 테이블 시작 위치로 돌아가서 수집 시작
+        i = startTableIndex;
+        
+        while (i < parsedItems.length) {
+          const currentItem = parsedItems[i];
+          if (currentItem.type === 'table-row') {
+            if (foundSeparator) {
+              // 구분선 이후는 본문
+              bodyRows.push(currentItem.content!);
+            } else {
+              // 구분선 이전은 헤더
+              headerRows.push(currentItem.content!);
+            }
+            i++;
+          } else if (currentItem.type === 'table-separator') {
+            foundSeparator = true;
+            i++;
+          } else {
+            // 테이블이 끝남
+            break;
+          }
+        }
+
+        // 테이블 렌더링
+        if (headerRows.length > 0 || bodyRows.length > 0) {
+          const allRows = foundSeparator 
+            ? [...headerRows, ...bodyRows] 
+            : headerRows.length > 0 
+              ? [...headerRows, ...bodyRows] 
+              : bodyRows;
+          
+          if (allRows.length > 0) {
+            result.push(renderTable(allRows, item.lineIndex));
+          }
+        }
+      } else if (item.type === 'list') {
         // 연속된 목록 항목들을 수집
         const listItems: Array<{ level: number; content: string; index: number }> = [];
         while (i < parsedItems.length && parsedItems[i].type === 'list') {
