@@ -318,8 +318,8 @@ export function CardComponent({
         </div>
       </div>
       
-      {/* 네비게이션 및 액션 버튼 */}
-      <div className="flex items-center justify-between p-4 bg-pokemon-bg border-t-4 border-pokemon-border flex-shrink-0">
+      {/* 네비게이션 및 액션 버튼 (PC 전용) */}
+      <div className="hidden md:flex items-center justify-between p-4 bg-pokemon-bg border-t-4 border-pokemon-border flex-shrink-0">
         <button
           onClick={onPrevious}
           disabled={!onPrevious}
