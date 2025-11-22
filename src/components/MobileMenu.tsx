@@ -71,7 +71,7 @@ export function MobileMenu({
                   onClearSelection();
                   onClose();
                 }}
-                className={`w-full text-left px-4 py-2 rounded-lg transition-colors font-bold ${
+                className={`w-full text-left px-4 py-1 rounded-lg transition-colors font-bold ${
                   selectedCategories.size === 0
                     ? 'bg-pokemon-blue text-white'
                     : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
@@ -90,7 +90,7 @@ export function MobileMenu({
                       onClick={() => {
                         onToggleCategory(category.name);
                       }}
-                      className={`flex-1 text-left px-4 py-2 rounded-lg transition-colors font-bold ${
+                      className={`flex-1 text-left px-4 py-1 rounded-lg transition-colors font-bold ${
                         isSelected
                           ? 'bg-pokemon-blue text-white'
                           : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
@@ -121,7 +121,7 @@ export function MobileMenu({
                     onOpenFavoritesManager();
                     onClose();
                   }}
-                  className="w-full text-left px-4 py-2 rounded-lg transition-colors bg-pokemon-yellow text-pokemon-text hover:bg-yellow-400 border-4 border-pokemon-border font-bold"
+                  className="w-full text-left px-4 py-1 rounded-lg transition-colors bg-pokemon-yellow text-pokemon-text hover:bg-yellow-400 border-4 border-pokemon-border font-bold"
                 >
                   <div className="flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,122 +135,116 @@ export function MobileMenu({
           </div>
           
           {/* 설정 */}
-          <div className="p-4 border-t-4 border-pokemon-border space-y-4">
+          <div className="p-3 border-t-4 border-pokemon-border space-y-2">
+            <label className="block text-[2rem] font-medium text-pokemon-text mb-2 font-bold">
+              ⚙
+            </label>
             {/* 순서 모드 */}
             <div>
-              <label className="block text-sm font-medium text-pokemon-text mb-2 font-bold">
-                순서
-              </label>
               <div className="flex gap-2">
                 <button
-                  onClick={() => onOrderModeChange('sequential')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
-                    orderMode === 'sequential'
-                      ? 'bg-pokemon-blue text-white'
-                      : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
-                  }`}
+                    onClick={() => onOrderModeChange('sequential')}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                        orderMode === 'sequential'
+                            ? 'bg-pokemon-blue text-white'
+                            : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+                    }`}
                 >
                   순서대로
                 </button>
                 <button
-                  onClick={() => onOrderModeChange('random')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
-                    orderMode === 'random'
-                      ? 'bg-pokemon-blue text-white'
-                      : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
-                  }`}
+                    onClick={() => onOrderModeChange('random')}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                        orderMode === 'random'
+                            ? 'bg-pokemon-blue text-white'
+                            : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+                    }`}
                 >
                   랜덤
                 </button>
               </div>
             </div>
-            
+
             {/* 필터 모드 */}
             <div>
-              <label className="block text-sm font-medium text-pokemon-text mb-2 font-bold">
-                필터
-              </label>
               <div className="flex gap-2">
                 <button
-                  onClick={() => onFilterModeChange('all')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
-                    filterMode === 'all'
-                      ? 'bg-pokemon-blue text-white'
-                      : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
-                  }`}
+                    onClick={() => onFilterModeChange('all')}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                        filterMode === 'all'
+                            ? 'bg-pokemon-blue text-white'
+                            : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+                    }`}
                 >
                   전체
                 </button>
                 <button
-                  onClick={() => {
-                    if (hasToken) {
-                      onFilterModeChange('favorites');
-                    } else {
-                      onOpenTokenSettings();
-                      onClose();
-                    }
-                  }}
-                  disabled={!hasToken}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
-                    !hasToken
-                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                      : filterMode === 'favorites'
-                      ? 'bg-pokemon-blue text-white'
-                      : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
-                  }`}
-                  title={!hasToken ? 'GitHub 토큰을 설정해주세요' : undefined}
+                    onClick={() => {
+                      if (hasToken) {
+                        onFilterModeChange('favorites');
+                      } else {
+                        onOpenTokenSettings();
+                        onClose();
+                      }
+                    }}
+                    disabled={!hasToken}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                        !hasToken
+                            ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                            : filterMode === 'favorites'
+                                ? 'bg-pokemon-blue text-white'
+                                : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+                    }`}
+                    title={!hasToken ? 'GitHub 토큰을 설정해주세요' : undefined}
                 >
                   즐겨찾기
                 </button>
               </div>
             </div>
-            
+
             {/* 이해도 필터 */}
             <div>
-              <label className="block text-sm font-medium text-pokemon-text mb-2 font-bold">
-                이해도
-              </label>
               <div className="flex gap-2">
                 <button
-                  onClick={() => onToggleUnderstandingLevel('low')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
-                    selectedUnderstandingLevels.has('low')
-                      ? 'bg-red-600 text-white'
-                      : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
-                  }`}
+                    onClick={() => onToggleUnderstandingLevel('low')}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                        selectedUnderstandingLevels.has('low')
+                            ? 'bg-red-600 text-white'
+                            : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+                    }`}
                 >
                   하
                 </button>
                 <button
-                  onClick={() => onToggleUnderstandingLevel('medium')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
-                    selectedUnderstandingLevels.has('medium')
-                      ? 'bg-yellow-600 text-white'
-                      : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
-                  }`}
+                    onClick={() => onToggleUnderstandingLevel('medium')}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                        selectedUnderstandingLevels.has('medium')
+                            ? 'bg-yellow-600 text-white'
+                            : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+                    }`}
                 >
                   중
                 </button>
                 <button
-                  onClick={() => onToggleUnderstandingLevel('high')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
-                    selectedUnderstandingLevels.has('high')
-                      ? 'bg-green-600 text-white'
-                      : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
-                  }`}
+                    onClick={() => onToggleUnderstandingLevel('high')}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                        selectedUnderstandingLevels.has('high')
+                            ? 'bg-green-600 text-white'
+                            : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+                    }`}
                 >
                   상
                 </button>
               </div>
             </div>
-            
+
             {/* 토큰 설정 */}
             <button
-              onClick={() => {
-                onOpenTokenSettings();
-                onClose();
-              }}
-              className="w-full px-3 py-2 bg-pokemon-red text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-bold"
+                onClick={() => {
+                  onOpenTokenSettings();
+                  onClose();
+                }}
+                className="w-full px-3 py-2 bg-pokemon-red text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-bold"
             >
               GitHub 토큰 설정
             </button>
