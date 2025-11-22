@@ -1,35 +1,50 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { Card, FavoriteItem } from '../types';
+import type { Card, FavoriteItem, UnderstandingItem, UnderstandingLevel } from '../types';
 
 interface CardManagerProps {
   isOpen: boolean;
   onClose: () => void;
   allCards: Card[];
   favoriteItems: Map<string, FavoriteItem>;
+  understandingItems: Map<string, UnderstandingItem>;
   categories: { name: string; cards: Card[] }[];
   onRemoveFavorites?: (cardIds: string[]) => void;
   onAddFavorites?: (cardIds: string[]) => void;
+  onSetUnderstandings?: (cardIds: string[], level: UnderstandingLevel) => void;
   hasToken: boolean;
 }
 
-type SortMode = 'default' | 'favorite-asc' | 'favorite-desc';
+type SortOrder = 'asc' | 'desc' | null;
+
+interface SortState {
+  understanding: SortOrder;
+  favorite: SortOrder;
+  priority: Array<'understanding' | 'favorite'>;
+}
 
 export function CardManager({
   isOpen,
   onClose,
   allCards,
   favoriteItems,
+  understandingItems,
   categories,
   onRemoveFavorites,
   onAddFavorites,
+  onSetUnderstandings,
   hasToken,
 }: CardManagerProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string | null>(null);
-  const [sortMode, setSortMode] = useState<SortMode>('favorite-desc');
+  const [selectedCategoryFilters, setSelectedCategoryFilters] = useState<Set<string>>(new Set());
+  const [selectedUnderstandingFilters, setSelectedUnderstandingFilters] = useState<Set<UnderstandingLevel>>(new Set());
+  const [sortState, setSortState] = useState<SortState>({
+    understanding: null,
+    favorite: null,
+    priority: [],
+  });
   const [previewCard, setPreviewCard] = useState<Card | null>(null);
 
   useEffect(() => {
@@ -45,6 +60,7 @@ export function CardManager({
     let cards = allCards.map(card => ({
       card,
       favoriteItem: favoriteItems.get(card.id),
+      understandingItem: understandingItems.get(card.id),
     }));
 
     // 검색 필터
@@ -55,14 +71,80 @@ export function CardManager({
       );
     }
 
-    // 카테고리 필터
-    if (selectedCategoryFilter) {
-      cards = cards.filter(({ card }) => card.category === selectedCategoryFilter);
+    // 카테고리 필터 (OR 조건: 선택된 카테고리 중 하나라도 일치하면 통과)
+    if (selectedCategoryFilters.size > 0) {
+      cards = cards.filter(({ card }) => selectedCategoryFilters.has(card.category));
+    }
+
+    // 이해도 필터 (OR 조건: 선택된 이해도 중 하나라도 일치하면 통과)
+    if (selectedUnderstandingFilters.size > 0) {
+      cards = cards.filter(({ understandingItem }) => {
+        const level = understandingItem?.level;
+        if (!level) return false;
+        return selectedUnderstandingFilters.has(level);
+      });
     }
 
     // 정렬
-    if (sortMode === 'default') {
-      // 기본: 카드 순서대로 (카테고리별, 파일별, 인덱스별)
+    if (sortState.priority.length > 0) {
+      // 복합 정렬 적용
+      cards.sort((a, b) => {
+        // priority 순서대로 정렬 적용
+        for (const sortKey of sortState.priority) {
+          let compareResult = 0;
+          
+          if (sortKey === 'understanding') {
+            const order = sortState.understanding;
+            if (order === null) continue;
+            
+            const levelA = a.understandingItem?.level;
+            const levelB = b.understandingItem?.level;
+            
+            // 이해도가 없는 카드는 맨 뒤
+            if (!levelA && !levelB) continue;
+            if (!levelA) return 1;
+            if (!levelB) return -1;
+            
+            // 이해도 순서: 상(high) → 중(medium) → 하(low)
+            const levelOrder: Record<string, number> = { 'high': 1, 'medium': 2, 'low': 3 };
+            const orderA = levelOrder[levelA] || 999;
+            const orderB = levelOrder[levelB] || 999;
+            
+            compareResult = orderA - orderB;
+            if (order === 'desc') compareResult = -compareResult;
+          } else if (sortKey === 'favorite') {
+            const order = sortState.favorite;
+            if (order === null) continue;
+            
+            const favoriteA = a.favoriteItem;
+            const favoriteB = b.favoriteItem;
+            
+            // 즐겨찾기가 없는 카드는 기본 순서대로 (나중에 처리)
+            if (!favoriteA && !favoriteB) continue;
+            if (!favoriteA) return 1;
+            if (!favoriteB) return -1;
+            
+            const dateA = new Date(favoriteA.addedAt).getTime();
+            const dateB = new Date(favoriteB.addedAt).getTime();
+            compareResult = order === 'asc' ? dateA - dateB : dateB - dateA;
+          }
+          
+          if (compareResult !== 0) {
+            return compareResult;
+          }
+        }
+        
+        // 정렬 기준이 같으면 기본 순서 (카테고리별, 파일별, 인덱스별)
+        if (a.card.category !== b.card.category) {
+          return a.card.category.localeCompare(b.card.category);
+        }
+        if (a.card.filename !== b.card.filename) {
+          return a.card.filename.localeCompare(b.card.filename);
+        }
+        return a.card.index - b.card.index;
+      });
+    } else {
+      // 정렬이 없으면 기본 순서
       cards.sort((a, b) => {
         if (a.card.category !== b.card.category) {
           return a.card.category.localeCompare(b.card.category);
@@ -72,35 +154,10 @@ export function CardManager({
         }
         return a.card.index - b.card.index;
       });
-    } else if (sortMode === 'favorite-asc' || sortMode === 'favorite-desc') {
-      // 즐겨찾기 등록일 기준 정렬
-      const withFavorites = cards.filter(({ favoriteItem }) => favoriteItem);
-      const withoutFavorites = cards.filter(({ favoriteItem }) => !favoriteItem);
-
-      // 즐겨찾기 있는 카드들 정렬
-      withFavorites.sort((a, b) => {
-        const dateA = new Date(a.favoriteItem!.addedAt).getTime();
-        const dateB = new Date(b.favoriteItem!.addedAt).getTime();
-        return sortMode === 'favorite-asc' ? dateA - dateB : dateB - dateA;
-      });
-
-      // 즐겨찾기 없는 카드들은 기본 순서대로
-      withoutFavorites.sort((a, b) => {
-        if (a.card.category !== b.card.category) {
-          return a.card.category.localeCompare(b.card.category);
-        }
-        if (a.card.filename !== b.card.filename) {
-          return a.card.filename.localeCompare(b.card.filename);
-        }
-        return a.card.index - b.card.index;
-      });
-
-      // 즐겨찾기 있는 카드들 먼저, 그 다음 없는 카드들
-      cards = [...withFavorites, ...withoutFavorites];
     }
 
     return cards;
-  }, [allCards, favoriteItems, searchQuery, selectedCategoryFilter, sortMode]);
+  }, [allCards, favoriteItems, understandingItems, searchQuery, selectedCategoryFilters, selectedUnderstandingFilters, sortState]);
 
   const handleSelectAll = () => {
     if (selectedIds.size === filteredAndSortedCards.length) {
@@ -145,6 +202,41 @@ export function CardManager({
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${year}${month}${day} ${hours}:${minutes}`;
+  };
+
+  // 정렬 상태 변경 핸들러
+  const handleSortClick = (sortKey: 'understanding' | 'favorite') => {
+    setSortState(prev => {
+      const currentOrder = prev[sortKey];
+      let newOrder: SortOrder;
+      
+      // null → 'asc' → 'desc' → null 순환
+      if (currentOrder === null) {
+        newOrder = 'asc';
+      } else if (currentOrder === 'asc') {
+        newOrder = 'desc';
+      } else {
+        newOrder = null;
+      }
+      
+      const newPriority = [...prev.priority];
+      // 이미 priority에 있으면 제거
+      const index = newPriority.indexOf(sortKey);
+      if (index !== -1) {
+        newPriority.splice(index, 1);
+      }
+      
+      // null이 아니면 맨 앞에 추가 (우선순위)
+      if (newOrder !== null) {
+        newPriority.unshift(sortKey);
+      }
+      
+      return {
+        ...prev,
+        [sortKey]: newOrder,
+        priority: newPriority,
+      };
+    });
   };
 
   // 마크다운 렌더링 함수 (Card 컴포넌트와 동일한 로직)
@@ -488,7 +580,7 @@ export function CardManager({
       <div className="bg-pokemon-bg rounded-lg shadow-xl max-w-6xl w-full h-[calc(100dvh-5rem)] md:h-[90vh] flex flex-col border-2 border-pokemon-border">
         {/* 헤더 */}
         <div className="p-2 md:p-4 border-b-2 border-pokemon-border flex items-center justify-between flex-shrink-0">
-          <h2 className="text-[1.2rem] md:text-2xl font-bold text-pokemon-text">
+          <h2 className="text-[1rem] md:text-2xl font-bold text-pokemon-text">
             전체 카드 관리 ({filteredAndSortedCards.length}개)
           </h2>
           <button
@@ -524,37 +616,139 @@ export function CardManager({
             )}
           </div>
 
-          {/* 필터 및 정렬 */}
+          {/* 필터 */}
           <div className="flex flex-wrap gap-2 items-center">
-            {/* 카테고리 필터 */}
-            <select
-              value={selectedCategoryFilter || ''}
-              onChange={(e) => setSelectedCategoryFilter(e.target.value || null)}
-              className="px-3 py-2 border-2 border-pokemon-border rounded-lg bg-pokemon-card text-pokemon-text focus:outline-none focus:ring-2 focus:ring-pokemon-blue text-sm font-medium"
-            >
-              <option value="">전체 카테고리</option>
-              {categories.map((cat) => (
-                <option key={cat.name} value={cat.name}>
+            <span className="text-sm text-pokemon-text font-bold">필터</span>
+            {/* 카테고리 필터 버튼들 */}
+            {categories.map((cat) => {
+              const isSelected = selectedCategoryFilters.has(cat.name);
+              return (
+                <button
+                  key={cat.name}
+                  onClick={() => {
+                    const newSet = new Set(selectedCategoryFilters);
+                    if (newSet.has(cat.name)) {
+                      newSet.delete(cat.name);
+                    } else {
+                      newSet.add(cat.name);
+                    }
+                    setSelectedCategoryFilters(newSet);
+                  }}
+                  className={`px-1 py-1 border-2 border-pokemon-border rounded-lg text-sm font-bold transition-colors ${
+                    isSelected
+                      ? 'bg-pokemon-blue text-white'
+                      : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
+                  }`}
+                >
                   {cat.name}
-                </option>
-              ))}
-            </select>
-
-            {/* 정렬 기준 */}
-            <select
-              value={sortMode}
-              onChange={(e) => setSortMode(e.target.value as SortMode)}
-              className="px-3 py-2 border-2 border-pokemon-border rounded-lg bg-pokemon-card text-pokemon-text focus:outline-none focus:ring-2 focus:ring-pokemon-blue text-sm font-medium"
+                </button>
+              );
+            })}
+            {/* 이해도 필터 버튼들 */}
+            <button
+              onClick={() => {
+                const newSet = new Set(selectedUnderstandingFilters);
+                if (newSet.has('low')) {
+                  newSet.delete('low');
+                } else {
+                  newSet.add('low');
+                }
+                setSelectedUnderstandingFilters(newSet);
+              }}
+              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-sm font-bold transition-colors ${
+                selectedUnderstandingFilters.has('low')
+                  ? 'bg-red-600 text-white'
+                  : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
+              }`}
             >
-              <option value="favorite-desc">즐겨찾기 등록일 최신순</option>
-              <option value="default">카드 순서대로</option>
-              <option value="favorite-asc">즐겨찾기 등록일 오래된순</option>
-            </select>
+              하
+            </button>
+            <button
+              onClick={() => {
+                const newSet = new Set(selectedUnderstandingFilters);
+                if (newSet.has('medium')) {
+                  newSet.delete('medium');
+                } else {
+                  newSet.add('medium');
+                }
+                setSelectedUnderstandingFilters(newSet);
+              }}
+              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-sm font-bold transition-colors ${
+                selectedUnderstandingFilters.has('medium')
+                  ? 'bg-yellow-600 text-white'
+                  : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
+              }`}
+            >
+              중
+            </button>
+            <button
+              onClick={() => {
+                const newSet = new Set(selectedUnderstandingFilters);
+                if (newSet.has('high')) {
+                  newSet.delete('high');
+                } else {
+                  newSet.add('high');
+                }
+                setSelectedUnderstandingFilters(newSet);
+              }}
+              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-sm font-bold transition-colors ${
+                selectedUnderstandingFilters.has('high')
+                  ? 'bg-green-600 text-white'
+                  : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
+              }`}
+            >
+              상
+            </button>
+          </div>
+          
+          {/* 정렬 버튼 */}
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-sm text-pokemon-text font-bold">정렬</span>
+            <button
+              onClick={() => handleSortClick('understanding')}
+              className={`px-1 py-1 border-2 border-pokemon-border rounded-lg text-sm font-bold transition-colors flex items-center gap-1 ${
+                sortState.understanding === null
+                  ? 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
+                  : 'bg-pokemon-blue text-white'
+              }`}
+            >
+              이해도
+              {sortState.understanding === 'asc' && (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                </svg>
+              )}
+              {sortState.understanding === 'desc' && (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              )}
+            </button>
+            <button
+              onClick={() => handleSortClick('favorite')}
+              className={`px-1 py-1 border-2 border-pokemon-border rounded-lg text-sm font-bold transition-colors flex items-center gap-1 ${
+                sortState.favorite === null
+                  ? 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
+                  : 'bg-pokemon-blue text-white'
+              }`}
+            >
+              즐겨찾기 등록일
+              {sortState.favorite === 'asc' && (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                </svg>
+              )}
+              {sortState.favorite === 'desc' && (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
 
         {/* 액션 바 */}
-        {hasToken && (onRemoveFavorites || onAddFavorites) && (
+        {hasToken && ((onRemoveFavorites || onAddFavorites) || onSetUnderstandings) && (
           <div className="p-2 md:p-4 border-b-2 border-pokemon-border flex items-center justify-between gap-4 flex-shrink-0">
             <div className="flex items-center gap-4">
               <button
@@ -571,24 +765,65 @@ export function CardManager({
                 </span>
               )}
             </div>
-            <div className="flex gap-2">
-              {onAddFavorites && (
-                <button
-                  onClick={handleAdd}
-                  disabled={selectedIds.size === 0}
-                  className="px-4 py-2 bg-pokemon-blue text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.7rem] md:text-sm font-bold"
-                >
-                  즐겨찾기 등록
-                </button>
+            <div className="flex gap-4 items-center">
+              {/* 이해도 그룹 */}
+              {onSetUnderstandings && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[0.7rem] md:text-sm text-pokemon-text font-bold">이해도</span>
+                  <button
+                    onClick={() => onSetUnderstandings(Array.from(selectedIds), null)}
+                    disabled={selectedIds.size === 0}
+                    className="px-2 py-1 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.7rem] md:text-sm font-bold"
+                  >
+                    해제
+                  </button>
+                  <button
+                    onClick={() => onSetUnderstandings(Array.from(selectedIds), 'low')}
+                    disabled={selectedIds.size === 0}
+                    className="px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.7rem] md:text-sm font-bold"
+                  >
+                    하
+                  </button>
+                  <button
+                    onClick={() => onSetUnderstandings(Array.from(selectedIds), 'medium')}
+                    disabled={selectedIds.size === 0}
+                    className="px-2 py-1 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.7rem] md:text-sm font-bold"
+                  >
+                    중
+                  </button>
+                  <button
+                    onClick={() => onSetUnderstandings(Array.from(selectedIds), 'high')}
+                    disabled={selectedIds.size === 0}
+                    className="px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.7rem] md:text-sm font-bold"
+                  >
+                    상
+                  </button>
+                </div>
               )}
-              {onRemoveFavorites && (
-                <button
-                  onClick={handleRemove}
-                  disabled={selectedIds.size === 0}
-                  className="px-4 py-2 bg-pokemon-red text-white rounded-lg hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.7rem] md:text-sm font-bold"
-                >
-                  즐겨찾기 해제
-                </button>
+              
+              {/* 즐겨찾기 그룹 */}
+              {(onAddFavorites || onRemoveFavorites) && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[0.7rem] md:text-sm text-pokemon-text font-bold">☆</span>
+                  {onAddFavorites && (
+                    <button
+                      onClick={handleAdd}
+                      disabled={selectedIds.size === 0}
+                      className="px-2 py-1 bg-pokemon-blue text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.5rem] md:text-sm font-bold"
+                    >
+                      +
+                    </button>
+                  )}
+                  {onRemoveFavorites && (
+                    <button
+                      onClick={handleRemove}
+                      disabled={selectedIds.size === 0}
+                      className="px-2 py-1 bg-pokemon-red text-white rounded-lg hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.5rem] md:text-sm font-bold"
+                    >
+                      -
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -599,13 +834,16 @@ export function CardManager({
           {filteredAndSortedCards.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <p className="text-[0.7rem] md:text-sm text-pokemon-text font-bold">
-                {searchQuery || selectedCategoryFilter ? '검색 결과가 없습니다.' : '카드가 없습니다.'}
+                {searchQuery || selectedCategoryFilters.size > 0 || selectedUnderstandingFilters.size > 0 ? '검색 결과가 없습니다.' : '카드가 없습니다.'}
               </p>
             </div>
           ) : (
             <div className="space-y-1 relative">
               {/* PC 헤더 */}
               <div className="hidden md:flex gap-4 p-2 text-sm font-medium text-pokemon-text border-b-2 border-pokemon-border bg-pokemon-bg sticky top-0 z-10 shadow-lg -mt-4 -mx-4 px-4 pt-4" style={{ backgroundColor: '#1a1a1a' }}>
+                {hasToken && (
+                  <div className="min-w-0" style={{ width: '50px', flexShrink: 0 }}>이해도</div>
+                )}
                 <div className="min-w-0" style={{ width: '75px', flexShrink: 0 }}>카테고리</div>
                 <div className="flex-1 min-w-0">카드 내용</div>
                 {hasToken && (
@@ -614,50 +852,61 @@ export function CardManager({
                 <div className="min-w-0" style={{ width: '60px', flexShrink: 0 }}></div>
               </div>
 
-              {filteredAndSortedCards.map(({ card, favoriteItem }) => {
+              {filteredAndSortedCards.map(({ card, favoriteItem, understandingItem }) => {
                 const isSelected = selectedIds.has(card.id);
                 const hasFavorite = !!favoriteItem;
                 return (
                   <div
                     key={card.id}
                     onClick={() => {
-                      if (hasToken && (onRemoveFavorites || onAddFavorites)) {
+                      if (hasToken && (onRemoveFavorites || onAddFavorites || onSetUnderstandings)) {
                         handleSelect(card.id);
                       }
                     }}
-                    className={`flex gap-4 p-3 border-2 rounded-lg transition-colors ${
+                    className={`flex gap-1 p-3 border-2 rounded-lg transition-colors ${
                       isSelected
                         ? 'bg-pokemon-blue text-white border-pokemon-red'
                         : hasFavorite
                         ? 'bg-pokemon-cardAlt border-pokemon-yellow hover:bg-pokemon-hover'
                         : 'bg-pokemon-card border-pokemon-border hover:bg-pokemon-hover'
-                    } ${hasToken && (onRemoveFavorites || onAddFavorites) ? 'cursor-pointer' : ''}`}
+                    } ${hasToken && (onRemoveFavorites || onAddFavorites || onSetUnderstandings) ? 'cursor-pointer' : ''}`}
                   >
+                    {/* 이해도 */}
+                    {hasToken && (
+                      <div className="min-w-0 flex items-center" style={{ width: '20px', flexShrink: 0 }}>
+                        <span className={`text-[0.6rem] md:text-sm font-medium ${isSelected ? 'text-yellow-200' : 'text-pokemon-yellow'}`}>
+                          {understandingItem?.level === 'low' ? '하' : 
+                           understandingItem?.level === 'medium' ? '중' : 
+                           understandingItem?.level === 'high' ? '상' : '-'}
+                        </span>
+                      </div>
+                    )}
+                    
                     {/* 카테고리 */}
-                    <div className="min-w-0 flex items-center" style={{ width: '75px', flexShrink: 0 }}>
-                      <span className={`text-[0.7rem] md:text-sm font-medium truncate ${isSelected ? 'text-white' : 'text-pokemon-text'}`}>
+                    <div className="min-w-0 flex items-center" style={{ width: '51px', flexShrink: 0 }}>
+                      <span className={`text-[0.7rem] md:text-sm font-medium truncate ${isSelected ? 'text-pokemon-borderAlt' : 'text-blue-400'}`}>
                         {card.category}
                       </span>
                     </div>
 
                     {/* 내용 미리보기 */}
                     <div className="flex-1 min-w-0 flex items-center">
-                      <span className={`text-[0.7rem] md:text-sm truncate ${isSelected ? 'text-white' : 'text-pokemon-text'}`}>
-                        {truncateText(card.content, isMobile ? 35 : 100)}
+                      <span className={`text-[0.6rem] md:text-sm truncate ${isSelected ? 'text-pokemon-yellow' : 'text-pokemon-borderAlt'}`}>
+                        {truncateText(card.content, isMobile ? 50 : 100)}
                       </span>
                     </div>
 
                     {/* 등록일시 */}
                     {hasToken && (
-                      <div className="flex-1 min-w-0 flex items-center justify-end">
-                        <span className={`text-[0.6rem] md:text-xs ${isSelected ? 'text-white' : 'text-pokemon-text'}`}>
+                      <div className="min-w-0 flex items-center justify-end">
+                        <span className={`text-[0.5rem] md:text-xs ${isSelected ? 'text-white' : 'text-pokemon-text'}`}>
                           {favoriteItem ? formatDate(favoriteItem.addedAt) : '-'}
                         </span>
                       </div>
                     )}
 
                     {/* 미리보기 버튼 */}
-                    <div className="min-w-0 flex items-center justify-center" style={{ width: '60px', flexShrink: 0 }}>
+                    <div className="min-w-0 flex items-center justify-center" style={{ width: '25px', flexShrink: 0 }}>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

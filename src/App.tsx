@@ -6,6 +6,7 @@ import { CardViewer } from './components/CardViewer';
 import { TokenSettings } from './components/TokenSettings';
 import { CardManager } from './components/CardManager';
 import { useFavorites } from './hooks/useFavorites';
+import { useUnderstandings } from './hooks/useUnderstandings';
 import * as gist from './utils/gist';
 import type { Card, OrderMode, FilterMode } from './types';
 
@@ -20,6 +21,8 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [tokenState, setTokenState] = useState(() => !!gist.getToken());
   const { favoriteIds, favoriteItems, toggleFavorite, addFavorites, removeFavorites, loadFavorites } = useFavorites();
+  const { understandingItems, setUnderstanding, setUnderstandings, loadUnderstandings } = useUnderstandings();
+  const [selectedUnderstandingLevels, setSelectedUnderstandingLevels] = useState<Set<'low' | 'medium' | 'high'>>(new Set());
   const hasToken = tokenState;
 
   // 카드 데이터 로드
@@ -56,10 +59,11 @@ function App() {
     return categories.flatMap(cat => cat.cards);
   }, [categories]);
 
-  // 토큰 설정 후 즐겨찾기 다시 로드
+  // 토큰 설정 후 즐겨찾기와 이해도 다시 로드
   const handleTokenSet = () => {
     setTokenState(!!gist.getToken());
     loadFavorites();
+    loadUnderstandings();
   };
 
   // 토큰이 없을 때 필터 모드를 'all'로 강제
@@ -91,7 +95,7 @@ function App() {
   return (
     <div className="h-[100dvh] flex flex-col bg-pokemon-bg">
       {/* 모바일 헤더 */}
-      <div className="md:hidden bg-pokemon-bg border-b-4 border-pokemon-border p-4 flex items-center justify-between">
+      <div className="md:hidden bg-pokemon-bg border-b-4 border-pokemon-border flex items-center justify-between">
         <button
           onClick={() => setIsMobileMenuOpen(true)}
           className="p-2 text-pokemon-text hover:text-pokemon-red transition-colors"
@@ -130,6 +134,16 @@ function App() {
             onOrderModeChange={setOrderMode}
             filterMode={filterMode}
             onFilterModeChange={setFilterMode}
+            selectedUnderstandingLevels={selectedUnderstandingLevels}
+            onToggleUnderstandingLevel={(level) => {
+              const newSet = new Set(selectedUnderstandingLevels);
+              if (newSet.has(level)) {
+                newSet.delete(level);
+              } else {
+                newSet.add(level);
+              }
+              setSelectedUnderstandingLevels(newSet);
+            }}
             onOpenTokenSettings={() => setIsTokenSettingsOpen(true)}
             onOpenFavoritesManager={() => setIsFavoritesManagerOpen(true)}
             hasToken={hasToken}
@@ -159,6 +173,16 @@ function App() {
           onOrderModeChange={setOrderMode}
           filterMode={filterMode}
           onFilterModeChange={setFilterMode}
+          selectedUnderstandingLevels={selectedUnderstandingLevels}
+          onToggleUnderstandingLevel={(level) => {
+            const newSet = new Set(selectedUnderstandingLevels);
+            if (newSet.has(level)) {
+              newSet.delete(level);
+            } else {
+              newSet.add(level);
+            }
+            setSelectedUnderstandingLevels(newSet);
+          }}
           onOpenTokenSettings={() => setIsTokenSettingsOpen(true)}
           onOpenFavoritesManager={() => setIsFavoritesManagerOpen(true)}
           isOpen={isMobileMenuOpen}
@@ -174,6 +198,9 @@ function App() {
             filterMode={filterMode}
             favoriteIds={hasToken ? favoriteIds : new Set()}
             onToggleFavorite={toggleFavorite}
+            selectedUnderstandingLevels={selectedUnderstandingLevels}
+            understandingItems={hasToken ? understandingItems : new Map()}
+            onSetUnderstanding={hasToken ? setUnderstanding : undefined}
             hasToken={hasToken}
             onRequestToken={() => setIsTokenSettingsOpen(true)}
             onOpenFavoritesManager={() => setIsFavoritesManagerOpen(true)}
@@ -194,9 +221,11 @@ function App() {
         onClose={() => setIsFavoritesManagerOpen(false)}
         allCards={allCards}
         favoriteItems={favoriteItems}
+        understandingItems={hasToken ? understandingItems : new Map()}
         categories={categories}
         onAddFavorites={hasToken ? addFavorites : undefined}
         onRemoveFavorites={hasToken ? removeFavorites : undefined}
+        onSetUnderstandings={hasToken ? setUnderstandings : undefined}
         hasToken={hasToken}
       />
     </div>

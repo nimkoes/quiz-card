@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import type { Card } from '../types';
+import type { Card, UnderstandingLevel } from '../types';
 
 interface CardProps {
   card: Card;
@@ -7,6 +7,8 @@ interface CardProps {
   onNext?: () => void;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
+  understandingLevel?: UnderstandingLevel;
+  onSetUnderstanding?: (level: UnderstandingLevel) => void;
   showExplanation?: boolean;
   onToggleExplanation?: () => void;
   hasToken?: boolean;
@@ -19,6 +21,8 @@ export function CardComponent({
   onNext,
   isFavorite = false,
   onToggleFavorite,
+  understandingLevel = null,
+  onSetUnderstanding,
   showExplanation = false,
   onToggleExplanation,
   hasToken = false,
@@ -35,6 +39,23 @@ export function CardComponent({
     // 토큰이 있을 때만 즐겨찾기 토글
     if (onToggleFavorite) {
       onToggleFavorite();
+    }
+  };
+
+  const handleUnderstandingClick = (level: UnderstandingLevel) => {
+    if (!hasToken) {
+      if (onRequestToken) {
+        onRequestToken();
+      }
+      return;
+    }
+    if (onSetUnderstanding) {
+      // 같은 레벨을 클릭하면 해제
+      if (understandingLevel === level) {
+        onSetUnderstanding(null);
+      } else {
+        onSetUnderstanding(level);
+      }
     }
   };
 
@@ -440,6 +461,55 @@ export function CardComponent({
         </button>
         
         <div className="flex items-center gap-4">
+          {/* 이해도 설정 */}
+          {onSetUnderstanding && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-pokemon-text font-bold">이해도:</span>
+              <button
+                onClick={() => handleUnderstandingClick('low')}
+                disabled={!hasToken}
+                className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
+                  !hasToken
+                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                    : understandingLevel === 'low'
+                    ? 'bg-red-600 text-white'
+                    : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+                }`}
+                title={!hasToken ? 'GitHub 토큰을 설정해주세요' : '하'}
+              >
+                하
+              </button>
+              <button
+                onClick={() => handleUnderstandingClick('medium')}
+                disabled={!hasToken}
+                className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
+                  !hasToken
+                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                    : understandingLevel === 'medium'
+                    ? 'bg-yellow-600 text-white'
+                    : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+                }`}
+                title={!hasToken ? 'GitHub 토큰을 설정해주세요' : '중'}
+              >
+                중
+              </button>
+              <button
+                onClick={() => handleUnderstandingClick('high')}
+                disabled={!hasToken}
+                className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
+                  !hasToken
+                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                    : understandingLevel === 'high'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+                }`}
+                title={!hasToken ? 'GitHub 토큰을 설정해주세요' : '상'}
+              >
+                상
+              </button>
+            </div>
+          )}
+          
           {(onToggleFavorite || onRequestToken) && (
             <button
               onClick={handleFavoriteClick}

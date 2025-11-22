@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import type { Card, OrderMode, FilterMode } from '../types';
+import type { Card, OrderMode, FilterMode, UnderstandingItem } from '../types';
 import { CardComponent } from './Card';
 
 interface CardViewerProps {
@@ -8,6 +8,9 @@ interface CardViewerProps {
   filterMode: FilterMode;
   favoriteIds: Set<string>;
   onToggleFavorite: (cardId: string) => void;
+  selectedUnderstandingLevels: Set<'low' | 'medium' | 'high'>;
+  understandingItems: Map<string, UnderstandingItem>;
+  onSetUnderstanding?: (cardId: string, level: 'low' | 'medium' | 'high' | null) => void;
   hasToken: boolean;
   onRequestToken: () => void;
   onOpenFavoritesManager?: () => void;
@@ -19,6 +22,9 @@ export function CardViewer({
   filterMode,
   favoriteIds,
   onToggleFavorite,
+  selectedUnderstandingLevels,
+  understandingItems,
+  onSetUnderstanding,
   hasToken,
   onRequestToken,
   onOpenFavoritesManager,
@@ -37,11 +43,26 @@ export function CardViewer({
 
   // 필터링된 카드 목록
   const filteredCards = useMemo(() => {
+    let result = cards;
+    
+    // 즐겨찾기 필터
     if (filterMode === 'favorites') {
-      return cards.filter(card => favoriteIds.has(card.id));
+      result = result.filter(card => favoriteIds.has(card.id));
     }
-    return cards;
-  }, [cards, filterMode, favoriteIds]);
+    
+    // 이해도 필터
+    if (selectedUnderstandingLevels.size > 0) {
+      result = result.filter(card => {
+        const understanding = understandingItems.get(card.id);
+        if (!understanding || !understanding.level) {
+          return false;
+        }
+        return selectedUnderstandingLevels.has(understanding.level);
+      });
+    }
+    
+    return result;
+  }, [cards, filterMode, favoriteIds, selectedUnderstandingLevels, understandingItems]);
 
   // 순서 모드에 따른 인덱스 배열
   const displayIndices = useMemo(() => {
@@ -208,9 +229,9 @@ export function CardViewer({
           )}
         </div>
 
-        {/* 가운데: 즐겨찾기 버튼 (모바일) */}
+        {/* 가운데: 즐겨찾기 및 이해도 버튼 (모바일) */}
         {currentCard && (
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center gap-2">
             <button
               onClick={handleFavoriteClick}
               disabled={!hasToken && !onRequestToken}
@@ -228,6 +249,52 @@ export function CardViewer({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
               </svg>
             </button>
+            {onSetUnderstanding && (
+              <>
+                <button
+                  onClick={() => onSetUnderstanding(currentCard.id, understandingItems.get(currentCard.id)?.level === 'low' ? null : 'low')}
+                  disabled={!hasToken}
+                  className={`px-2 py-1 rounded text-xs font-bold transition-colors ${
+                    !hasToken
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                      : understandingItems.get(currentCard.id)?.level === 'low'
+                      ? 'bg-red-600 text-white'
+                      : 'bg-pokemon-card text-pokemon-text border border-pokemon-border'
+                  }`}
+                  title={!hasToken ? 'GitHub 토큰을 설정해주세요' : '하'}
+                >
+                  하
+                </button>
+                <button
+                  onClick={() => onSetUnderstanding(currentCard.id, understandingItems.get(currentCard.id)?.level === 'medium' ? null : 'medium')}
+                  disabled={!hasToken}
+                  className={`px-2 py-1 rounded text-xs font-bold transition-colors ${
+                    !hasToken
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                      : understandingItems.get(currentCard.id)?.level === 'medium'
+                      ? 'bg-yellow-600 text-white'
+                      : 'bg-pokemon-card text-pokemon-text border border-pokemon-border'
+                  }`}
+                  title={!hasToken ? 'GitHub 토큰을 설정해주세요' : '중'}
+                >
+                  중
+                </button>
+                <button
+                  onClick={() => onSetUnderstanding(currentCard.id, understandingItems.get(currentCard.id)?.level === 'high' ? null : 'high')}
+                  disabled={!hasToken}
+                  className={`px-2 py-1 rounded text-xs font-bold transition-colors ${
+                    !hasToken
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                      : understandingItems.get(currentCard.id)?.level === 'high'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-pokemon-card text-pokemon-text border border-pokemon-border'
+                  }`}
+                  title={!hasToken ? 'GitHub 토큰을 설정해주세요' : '상'}
+                >
+                  상
+                </button>
+              </>
+            )}
           </div>
         )}
 
@@ -267,6 +334,8 @@ export function CardViewer({
               onNext={currentIndex < filteredCards.length - 1 && !isTransitioning ? handleNext : undefined}
               isFavorite={favoriteIds.has(currentCard.id)}
               onToggleFavorite={() => onToggleFavorite(currentCard.id)}
+              understandingLevel={understandingItems.get(currentCard.id)?.level || null}
+              onSetUnderstanding={onSetUnderstanding ? (level) => onSetUnderstanding(currentCard.id, level) : undefined}
               showExplanation={showExplanation}
               onToggleExplanation={() => setShowExplanation(!showExplanation)}
               hasToken={hasToken}

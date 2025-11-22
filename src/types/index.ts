@@ -25,3 +25,11 @@ export interface FavoriteItem {
 export type OrderMode = 'sequential' | 'random';
 export type FilterMode = 'all' | 'favorites';
 
+export type UnderstandingLevel = 'low' | 'medium' | 'high' | null;
+
+export interface UnderstandingItem {
+  cardId: string;
+  level: UnderstandingLevel;
+  updatedAt: string; // ISO 8601 형식의 날짜 문자열
+}
+

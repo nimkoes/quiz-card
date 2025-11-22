@@ -10,6 +10,8 @@ interface CategorySidebarProps {
   onOrderModeChange: (mode: 'sequential' | 'random') => void;
   filterMode: 'all' | 'favorites';
   onFilterModeChange: (mode: 'all' | 'favorites') => void;
+  selectedUnderstandingLevels: Set<'low' | 'medium' | 'high'>;
+  onToggleUnderstandingLevel: (level: 'low' | 'medium' | 'high') => void;
   onOpenTokenSettings: () => void;
   onOpenFavoritesManager?: () => void;
   hasToken: boolean;
@@ -25,6 +27,8 @@ export function CategorySidebar({
   onOrderModeChange,
   filterMode,
   onFilterModeChange,
+  selectedUnderstandingLevels,
+  onToggleUnderstandingLevel,
   onOpenTokenSettings,
   onOpenFavoritesManager,
   hasToken,
@@ -164,6 +168,45 @@ export function CategorySidebar({
               title={!hasToken ? 'GitHub 토큰을 설정해주세요' : undefined}
             >
               즐겨찾기
+            </button>
+          </div>
+        </div>
+        
+        {/* 이해도 필터 */}
+        <div>
+          <label className="block text-sm font-medium text-pokemon-text mb-2 font-bold">
+            이해도
+          </label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onToggleUnderstandingLevel('low')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                selectedUnderstandingLevels.has('low')
+                  ? 'bg-red-600 text-white'
+                  : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+              }`}
+            >
+              하
+            </button>
+            <button
+              onClick={() => onToggleUnderstandingLevel('medium')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                selectedUnderstandingLevels.has('medium')
+                  ? 'bg-yellow-600 text-white'
+                  : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+              }`}
+            >
+              중
+            </button>
+            <button
+              onClick={() => onToggleUnderstandingLevel('high')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                selectedUnderstandingLevels.has('high')
+                  ? 'bg-green-600 text-white'
+                  : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+              }`}
+            >
+              상
             </button>
           </div>
         </div>
