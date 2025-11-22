@@ -508,6 +508,7 @@ export function CardManager({
 
               {filteredAndSortedCards.map(({ card, favoriteItem }) => {
                 const isSelected = selectedIds.has(card.id);
+                const hasFavorite = !!favoriteItem;
                 return (
                   <div
                     key={card.id}
@@ -516,10 +517,12 @@ export function CardManager({
                         handleSelect(card.id);
                       }
                     }}
-                    className={`flex gap-4 p-3 border-2 border-pokemon-border rounded-lg transition-colors ${
+                    className={`flex gap-4 p-3 border-2 rounded-lg transition-colors ${
                       isSelected
                         ? 'bg-pokemon-blue text-white border-pokemon-red'
-                        : 'bg-pokemon-card hover:bg-pokemon-hover'
+                        : hasFavorite
+                        ? 'bg-pokemon-cardAlt border-pokemon-yellow hover:bg-pokemon-hover'
+                        : 'bg-pokemon-card border-pokemon-border hover:bg-pokemon-hover'
                     } ${hasToken && (onRemoveFavorites || onAddFavorites) ? 'cursor-pointer' : ''}`}
                   >
                     {/* 카테고리 */}
