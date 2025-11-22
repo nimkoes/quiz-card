@@ -377,7 +377,7 @@ export function CardManager({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 md:p-4">
-      <div className="bg-pokemon-bg rounded-lg shadow-xl max-w-6xl w-full h-[calc(100vh-5rem)] md:h-[90vh] flex flex-col border-2 border-pokemon-border">
+      <div className="bg-pokemon-bg rounded-lg shadow-xl max-w-6xl w-full h-[calc(100dvh-5rem)] md:h-[90vh] flex flex-col border-2 border-pokemon-border">
         {/* 헤더 */}
         <div className="p-2 md:p-4 border-b-2 border-pokemon-border flex items-center justify-between flex-shrink-0">
           <h2 className="text-[1.2rem] md:text-2xl font-bold text-pokemon-text">

@@ -89,7 +89,7 @@ function App() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-pokemon-bg">
+    <div className="h-[100dvh] flex flex-col bg-pokemon-bg">
       {/* 모바일 헤더 */}
       <div className="md:hidden bg-pokemon-bg border-b-4 border-pokemon-border p-4 flex items-center justify-between">
         <button

@@ -11,7 +11,7 @@
 body {
   margin: 0;
   min-width: 320px;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* Select 옵션 스타일 - 어두운 배경에 맞게 */
