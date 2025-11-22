@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import type { Card, FavoriteItem } from '../types';
 
 interface CardManagerProps {
@@ -28,7 +29,8 @@ export function CardManager({
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string | null>(null);
-  const [sortMode, setSortMode] = useState<SortMode>('default');
+  const [sortMode, setSortMode] = useState<SortMode>('favorite-desc');
+  const [previewCard, setPreviewCard] = useState<Card | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -145,6 +147,232 @@ export function CardManager({
     return `${year}${month}${day} ${hours}:${minutes}`;
   };
 
+  // 마크다운 렌더링 함수 (Card 컴포넌트와 동일한 로직)
+  const renderMarkdown = (text: string): ReactNode => {
+    const lines = text.split('\n');
+    const result: ReactNode[] = [];
+
+    const processInlineMarkdown = (text: string, keyPrefix: string = ''): ReactNode[] => {
+      const parts: ReactNode[] = [];
+      let remainingText = text;
+      let key = 0;
+
+      while (remainingText.length > 0) {
+        let bestMatch: { start: number; end: number; type: string; content: string } | null = null;
+
+        const boldItalicMatch = remainingText.match(/\*\*\*(.+?)\*\*\*/);
+        if (boldItalicMatch && boldItalicMatch.index !== undefined) {
+          bestMatch = {
+            start: boldItalicMatch.index,
+            end: boldItalicMatch.index + boldItalicMatch[0].length,
+            type: 'boldItalic',
+            content: boldItalicMatch[1],
+          };
+        }
+
+        const boldMatch = remainingText.match(/\*\*(.+?)\*\*/);
+        if (boldMatch && boldMatch.index !== undefined) {
+          if (!bestMatch || boldMatch.index < bestMatch.start) {
+            bestMatch = {
+              start: boldMatch.index,
+              end: boldMatch.index + boldMatch[0].length,
+              type: 'bold',
+              content: boldMatch[1],
+            };
+          }
+        }
+
+        const underlineMatch = remainingText.match(/__(.+?)__/);
+        if (underlineMatch && underlineMatch.index !== undefined) {
+          if (!bestMatch || underlineMatch.index < bestMatch.start) {
+            bestMatch = {
+              start: underlineMatch.index,
+              end: underlineMatch.index + underlineMatch[0].length,
+              type: 'underline',
+              content: underlineMatch[1],
+            };
+          }
+        }
+
+        const italicMatch = remainingText.match(/\*([^*]+?)\*/);
+        if (italicMatch && italicMatch.index !== undefined) {
+          const beforeChar = italicMatch.index > 0 ? remainingText[italicMatch.index - 1] : '';
+          const afterIndex = italicMatch.index + italicMatch[0].length;
+          const afterChar = afterIndex < remainingText.length ? remainingText[afterIndex] : '';
+          if (beforeChar !== '*' && afterChar !== '*') {
+            if (!bestMatch || italicMatch.index < bestMatch.start) {
+              bestMatch = {
+                start: italicMatch.index,
+                end: italicMatch.index + italicMatch[0].length,
+                type: 'italic',
+                content: italicMatch[1],
+              };
+            }
+          }
+        }
+
+        if (bestMatch) {
+          if (bestMatch.start > 0) {
+            const beforeText = remainingText.substring(0, bestMatch.start);
+            parts.push(...processInlineMarkdown(beforeText, `${keyPrefix}-before-${key}`));
+          }
+
+          const innerContent = processInlineMarkdown(bestMatch.content, `${keyPrefix}-inner-${key}`);
+
+          if (bestMatch.type === 'boldItalic') {
+            parts.push(
+              <strong key={`${keyPrefix}-${key++}`} className="font-bold italic">
+                {innerContent}
+              </strong>
+            );
+          } else if (bestMatch.type === 'bold') {
+            parts.push(
+              <strong key={`${keyPrefix}-${key++}`} className="font-bold italic">
+                {innerContent}
+              </strong>
+            );
+          } else if (bestMatch.type === 'underline') {
+            parts.push(
+              <u key={`${keyPrefix}-${key++}`} className="underline decoration-pokemon-red decoration-2">
+                {innerContent}
+              </u>
+            );
+          } else if (bestMatch.type === 'italic') {
+            parts.push(
+              <em key={`${keyPrefix}-${key++}`} className="italic">
+                {innerContent}
+              </em>
+            );
+          }
+
+          remainingText = remainingText.substring(bestMatch.end);
+        } else {
+          if (remainingText.length > 0) {
+            parts.push(remainingText);
+          }
+          break;
+        }
+      }
+
+      return parts.length > 0 ? parts : [text];
+    };
+
+    const buildList = (items: Array<{ level: number; content: string; index: number }>, startIndex: number): { nodes: ReactNode; endIndex: number } => {
+      if (startIndex >= items.length) {
+        return { nodes: null, endIndex: startIndex };
+      }
+
+      const currentLevel = items[startIndex].level;
+      const listItems: ReactNode[] = [];
+      let i = startIndex;
+
+      while (i < items.length) {
+        if (items[i].level < currentLevel) {
+          break;
+        }
+
+        if (items[i].level === currentLevel) {
+          const itemContent = processInlineMarkdown(items[i].content);
+          const children: ReactNode[] = [];
+          let nextIndex = i + 1;
+
+          if (nextIndex < items.length && items[nextIndex].level > currentLevel) {
+            const childResult = buildList(items, nextIndex);
+            children.push(childResult.nodes);
+            nextIndex = childResult.endIndex;
+          }
+
+          listItems.push(
+            <li key={`item-${items[i].index}`}>
+              {itemContent}
+              {children.length > 0 && (
+                <ul className="list-disc list-inside ml-6">
+                  {children}
+                </ul>
+              )}
+            </li>
+          );
+
+          i = nextIndex;
+        } else {
+          i++;
+        }
+      }
+
+      return {
+        nodes: (
+          <ul key={`list-${startIndex}`} className="list-disc list-inside ml-2">
+            {listItems}
+          </ul>
+        ),
+        endIndex: i,
+      };
+    };
+
+    const parsedItems: Array<{ type: 'list' | 'text' | 'blank'; level?: number; content?: string; lineIndex: number }> = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmedLine = line.trim();
+      const indentMatch = line.match(/^(\s*)/);
+      const indent = indentMatch ? indentMatch[1].length : 0;
+
+      if (trimmedLine.startsWith('- ')) {
+        const listContent = trimmedLine.substring(2);
+        const level = Math.floor(indent / 2);
+        parsedItems.push({
+          type: 'list',
+          level,
+          content: listContent,
+          lineIndex: i,
+        });
+      } else if (trimmedLine) {
+        parsedItems.push({
+          type: 'text',
+          content: trimmedLine,
+          lineIndex: i,
+        });
+      } else {
+        parsedItems.push({
+          type: 'blank',
+          lineIndex: i,
+        });
+      }
+    }
+
+    let i = 0;
+    while (i < parsedItems.length) {
+      const item = parsedItems[i];
+
+      if (item.type === 'list') {
+        const listItems: Array<{ level: number; content: string; index: number }> = [];
+        while (i < parsedItems.length && parsedItems[i].type === 'list') {
+          listItems.push({
+            level: parsedItems[i].level!,
+            content: parsedItems[i].content!,
+            index: parsedItems[i].lineIndex,
+          });
+          i++;
+        }
+
+        const listResult = buildList(listItems, 0);
+        result.push(listResult.nodes);
+      } else if (item.type === 'text') {
+        result.push(
+          <div key={`line-${item.lineIndex}`}>
+            {processInlineMarkdown(item.content!)}
+          </div>
+        );
+        i++;
+      } else {
+        result.push(<br key={`br-${item.lineIndex}`} />);
+        i++;
+      }
+    }
+
+    return <>{result}</>;
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -210,8 +438,8 @@ export function CardManager({
               onChange={(e) => setSortMode(e.target.value as SortMode)}
               className="px-3 py-2 border-2 border-pokemon-border rounded-lg bg-pokemon-card text-pokemon-text focus:outline-none focus:ring-2 focus:ring-pokemon-blue text-sm font-medium"
             >
-              <option value="default">카드 순서대로</option>
               <option value="favorite-desc">즐겨찾기 등록일 최신순</option>
+              <option value="default">카드 순서대로</option>
               <option value="favorite-asc">즐겨찾기 등록일 오래된순</option>
             </select>
           </div>
@@ -275,6 +503,7 @@ export function CardManager({
                 {hasToken && (
                   <div className="flex-1 min-w-0 text-right">즐겨찾기 등록일시</div>
                 )}
+                <div className="min-w-0" style={{ width: '60px', flexShrink: 0 }}></div>
               </div>
 
               {filteredAndSortedCards.map(({ card, favoriteItem }) => {
@@ -315,6 +544,20 @@ export function CardManager({
                         </span>
                       </div>
                     )}
+
+                    {/* 미리보기 버튼 */}
+                    <div className="min-w-0 flex items-center justify-center" style={{ width: '60px', flexShrink: 0 }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPreviewCard(card);
+                        }}
+                        className="p-2 text-pokemon-blue hover:text-pokemon-red transition-colors text-lg"
+                        title="카드 미리보기"
+                      >
+                        💬
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -322,6 +565,33 @@ export function CardManager({
           )}
         </div>
       </div>
+
+      {/* 카드 미리보기 모달 */}
+      {previewCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4" onClick={() => setPreviewCard(null)}>
+          <div className="bg-pokemon-bg rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col border-2 border-pokemon-border" onClick={(e) => e.stopPropagation()}>
+            {/* 카드 내용 */}
+            <div className="flex-1 min-h-0 overflow-y-auto p-4">
+              <div className="space-y-4">
+                <div>
+                  <div className="text-sm text-pokemon-text opacity-75 mb-2">내용</div>
+                  <div className="text-pokemon-text text-[0.9em] leading-relaxed">
+                    {renderMarkdown(previewCard.content)}
+                  </div>
+                </div>
+                {previewCard.explanation && (
+                  <div>
+                    <div className="text-sm text-pokemon-text opacity-75 mb-2">추가 설명</div>
+                    <div className="text-pokemon-text text-[0.7em] leading-relaxed">
+                      {renderMarkdown(previewCard.explanation)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
