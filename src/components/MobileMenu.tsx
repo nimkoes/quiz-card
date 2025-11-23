@@ -48,16 +48,19 @@ export function MobileMenu({
       />
       
       {/* 메뉴 드로어 */}
-      <div className="fixed inset-y-0 left-0 w-64 bg-pokemon-bg z-50 transform transition-transform duration-300 ease-in-out border-r-4 border-pokemon-border">
+      <div 
+        className="fixed inset-y-0 left-0 w-64 bg-pokemon-bg z-50 transform transition-transform duration-300 ease-in-out border-r-2 border-pokemon-border"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="h-full flex flex-col">
           {/* 헤더 */}
-          <div className="p-4 border-b-4 border-pokemon-border flex items-center justify-between">
-            <h1 className="text-xl font-bold text-pokemon-text">Quiz Card</h1>
+          <div className="p-2 border-b-2 border-pokemon-border flex items-center justify-between">
+            <h1 className="text-[0.9em] font-bold text-pokemon-text">Quiz Card</h1>
             <button
               onClick={onClose}
-              className="p-2 text-pokemon-text hover:text-pokemon-red transition-colors"
+              className="p-0 text-pokemon-text hover:text-pokemon-red transition-colors"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -69,7 +72,6 @@ export function MobileMenu({
               <button
                 onClick={() => {
                   onClearSelection();
-                  onClose();
                 }}
                 className={`w-full text-left px-4 py-1 rounded-lg transition-colors font-bold ${
                   selectedCategories.size === 0
@@ -90,7 +92,7 @@ export function MobileMenu({
                       onClick={() => {
                         onToggleCategory(category.name);
                       }}
-                      className={`flex-1 text-left px-4 py-1 rounded-lg transition-colors font-bold ${
+                      className={`flex-1 text-left px-6 py-1 rounded-lg transition-colors ${
                         isSelected
                           ? 'bg-pokemon-blue text-white'
                           : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
@@ -105,7 +107,6 @@ export function MobileMenu({
                       onClick={(e) => {
                         e.stopPropagation();
                         onSelectOnly(category.name);
-                        onClose();
                       }}
                       className="px-2 py-1 text-xs bg-pokemon-red text-white rounded hover:bg-red-600 transition-colors font-bold"
                       title="이 카테고리만 선택"
@@ -119,9 +120,8 @@ export function MobileMenu({
                 <button
                   onClick={() => {
                     onOpenFavoritesManager();
-                    onClose();
                   }}
-                  className="w-full text-left px-4 py-1 rounded-lg transition-colors bg-pokemon-yellow text-pokemon-text hover:bg-yellow-400 border-4 border-pokemon-border font-bold"
+                  className="w-full text-left px-2 py-1 rounded-lg transition-colors bg-pokemon-yellow text-pokemon-text hover:bg-yellow-400 border-2 border-pokemon-border font-bold"
                 >
                   <div className="flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,8 +135,8 @@ export function MobileMenu({
           </div>
           
           {/* 설정 */}
-          <div className="p-3 border-t-4 border-pokemon-border space-y-2">
-            <label className="block text-[2rem] font-medium text-pokemon-text mb-2 font-bold">
+          <div className="p-3 border-t-2 border-pokemon-border space-y-2">
+            <label className="block text-[2rem] font-light text-pokemon-text mb-2">
               ⚙
             </label>
             {/* 순서 모드 */}
@@ -144,7 +144,7 @@ export function MobileMenu({
               <div className="flex gap-2">
                 <button
                     onClick={() => onOrderModeChange('sequential')}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
                         orderMode === 'sequential'
                             ? 'bg-pokemon-blue text-white'
                             : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
@@ -154,7 +154,7 @@ export function MobileMenu({
                 </button>
                 <button
                     onClick={() => onOrderModeChange('random')}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
                         orderMode === 'random'
                             ? 'bg-pokemon-blue text-white'
                             : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
@@ -170,7 +170,7 @@ export function MobileMenu({
               <div className="flex gap-2">
                 <button
                     onClick={() => onFilterModeChange('all')}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
                         filterMode === 'all'
                             ? 'bg-pokemon-blue text-white'
                             : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
@@ -184,11 +184,10 @@ export function MobileMenu({
                         onFilterModeChange('favorites');
                       } else {
                         onOpenTokenSettings();
-                        onClose();
                       }
                     }}
                     disabled={!hasToken}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
                         !hasToken
                             ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                             : filterMode === 'favorites'
@@ -207,7 +206,7 @@ export function MobileMenu({
               <div className="flex gap-2">
                 <button
                     onClick={() => onToggleUnderstandingLevel('low')}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
                         selectedUnderstandingLevels.has('low')
                             ? 'bg-red-600 text-white'
                             : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
@@ -217,7 +216,7 @@ export function MobileMenu({
                 </button>
                 <button
                     onClick={() => onToggleUnderstandingLevel('medium')}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
                         selectedUnderstandingLevels.has('medium')
                             ? 'bg-yellow-600 text-white'
                             : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
@@ -227,7 +226,7 @@ export function MobileMenu({
                 </button>
                 <button
                     onClick={() => onToggleUnderstandingLevel('high')}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
                         selectedUnderstandingLevels.has('high')
                             ? 'bg-green-600 text-white'
                             : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
@@ -242,9 +241,8 @@ export function MobileMenu({
             <button
                 onClick={() => {
                   onOpenTokenSettings();
-                  onClose();
                 }}
-                className="w-full px-3 py-2 bg-pokemon-red text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-bold"
+                className="w-full px-3 py-1 bg-pokemon-red text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-bold"
             >
               GitHub 토큰 설정
             </button>

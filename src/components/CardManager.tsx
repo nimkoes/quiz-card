@@ -579,15 +579,15 @@ export function CardManager({
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 md:p-4">
       <div className="bg-pokemon-bg rounded-lg shadow-xl max-w-6xl w-full h-[calc(100dvh-5rem)] md:h-[90vh] flex flex-col border-2 border-pokemon-border">
         {/* 헤더 */}
-        <div className="p-2 md:p-4 border-b-2 border-pokemon-border flex items-center justify-between flex-shrink-0">
-          <h2 className="text-[1rem] md:text-2xl font-bold text-pokemon-text">
+        <div className="p-1 md:p-4 border-b-2 border-pokemon-border flex items-center justify-between flex-shrink-0">
+          <h2 className="text-[0.7rem] md:text-2xl font-bold text-pokemon-text">
             전체 카드 관리 ({filteredAndSortedCards.length}개)
           </h2>
           <button
             onClick={onClose}
             className="p-2 text-pokemon-text hover:text-pokemon-red transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -617,8 +617,8 @@ export function CardManager({
           </div>
 
           {/* 필터 */}
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-sm text-pokemon-text font-bold">필터</span>
+          <div className="flex flex-wrap gap-1 items-center">
+            <span className="text-[0.7em] text-pokemon-text font-bold">필터</span>
             {/* 카테고리 필터 버튼들 */}
             {categories.map((cat) => {
               const isSelected = selectedCategoryFilters.has(cat.name);
@@ -634,7 +634,7 @@ export function CardManager({
                     }
                     setSelectedCategoryFilters(newSet);
                   }}
-                  className={`px-1 py-1 border-2 border-pokemon-border rounded-lg text-sm font-bold transition-colors ${
+                  className={`px-1 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors ${
                     isSelected
                       ? 'bg-pokemon-blue text-white'
                       : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
@@ -655,7 +655,7 @@ export function CardManager({
                 }
                 setSelectedUnderstandingFilters(newSet);
               }}
-              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-sm font-bold transition-colors ${
+              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors ${
                 selectedUnderstandingFilters.has('low')
                   ? 'bg-red-600 text-white'
                   : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
@@ -673,7 +673,7 @@ export function CardManager({
                 }
                 setSelectedUnderstandingFilters(newSet);
               }}
-              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-sm font-bold transition-colors ${
+              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors ${
                 selectedUnderstandingFilters.has('medium')
                   ? 'bg-yellow-600 text-white'
                   : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
@@ -691,7 +691,7 @@ export function CardManager({
                 }
                 setSelectedUnderstandingFilters(newSet);
               }}
-              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-sm font-bold transition-colors ${
+              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors ${
                 selectedUnderstandingFilters.has('high')
                   ? 'bg-green-600 text-white'
                   : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
@@ -703,10 +703,10 @@ export function CardManager({
           
           {/* 정렬 버튼 */}
           <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-sm text-pokemon-text font-bold">정렬</span>
+            <span className="text-[0.7em] text-pokemon-text font-bold">정렬</span>
             <button
               onClick={() => handleSortClick('understanding')}
-              className={`px-1 py-1 border-2 border-pokemon-border rounded-lg text-sm font-bold transition-colors flex items-center gap-1 ${
+              className={`px-1 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors flex items-center ${
                 sortState.understanding === null
                   ? 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
                   : 'bg-pokemon-blue text-white'
@@ -714,32 +714,32 @@ export function CardManager({
             >
               이해도
               {sortState.understanding === 'asc' && (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                 </svg>
               )}
               {sortState.understanding === 'desc' && (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               )}
             </button>
             <button
               onClick={() => handleSortClick('favorite')}
-              className={`px-1 py-1 border-2 border-pokemon-border rounded-lg text-sm font-bold transition-colors flex items-center gap-1 ${
+              className={`px-1 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors flex items-center ${
                 sortState.favorite === null
                   ? 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
                   : 'bg-pokemon-blue text-white'
               }`}
             >
-              즐겨찾기 등록일
+              ☆ 등록일
               {sortState.favorite === 'asc' && (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                 </svg>
               )}
               {sortState.favorite === 'desc' && (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-2 h-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               )}
@@ -753,14 +753,14 @@ export function CardManager({
             <div className="flex items-center gap-4">
               <button
                 onClick={handleSelectAll}
-                className="text-[0.7rem] md:text-sm text-pokemon-text hover:text-pokemon-red transition-colors font-bold"
+                className="text-[0.65rem] md:text-sm text-pokemon-text hover:text-pokemon-red transition-colors font-bold"
               >
                 {selectedIds.size === filteredAndSortedCards.length && filteredAndSortedCards.length > 0
                   ? '전체 해제'
                   : '전체 선택'}
               </button>
               {selectedIds.size > 0 && (
-                <span className="text-[0.7rem] md:text-sm text-pokemon-text font-bold">
+                <span className="text-[0.65rem] md:text-sm text-pokemon-text font-bold">
                   {selectedIds.size}
                 </span>
               )}
@@ -769,32 +769,32 @@ export function CardManager({
               {/* 이해도 그룹 */}
               {onSetUnderstandings && (
                 <div className="flex items-center gap-2">
-                  <span className="text-[0.7rem] md:text-sm text-pokemon-text font-bold">이해도</span>
+                  <span className="text-[0.65rem] md:text-sm text-pokemon-text font-bold">이해도</span>
                   <button
                     onClick={() => onSetUnderstandings(Array.from(selectedIds), null)}
                     disabled={selectedIds.size === 0}
-                    className="px-2 py-1 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.7rem] md:text-sm font-bold"
+                    className="px-2 py-1 bg-gray-300 text-white rounded-lg hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.6rem] md:text-sm font-bold"
                   >
-                    해제
+                    🗑️
                   </button>
                   <button
                     onClick={() => onSetUnderstandings(Array.from(selectedIds), 'low')}
                     disabled={selectedIds.size === 0}
-                    className="px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.7rem] md:text-sm font-bold"
+                    className="px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.6rem] md:text-sm font-bold"
                   >
                     하
                   </button>
                   <button
                     onClick={() => onSetUnderstandings(Array.from(selectedIds), 'medium')}
                     disabled={selectedIds.size === 0}
-                    className="px-2 py-1 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.7rem] md:text-sm font-bold"
+                    className="px-2 py-1 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.6rem] md:text-sm font-bold"
                   >
                     중
                   </button>
                   <button
                     onClick={() => onSetUnderstandings(Array.from(selectedIds), 'high')}
                     disabled={selectedIds.size === 0}
-                    className="px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.7rem] md:text-sm font-bold"
+                    className="px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.6rem] md:text-sm font-bold"
                   >
                     상
                   </button>
@@ -804,12 +804,12 @@ export function CardManager({
               {/* 즐겨찾기 그룹 */}
               {(onAddFavorites || onRemoveFavorites) && (
                 <div className="flex items-center gap-2">
-                  <span className="text-[0.7rem] md:text-sm text-pokemon-text font-bold">☆</span>
+                  <span className="text-[0.6rem] md:text-sm text-pokemon-text font-bold">☆</span>
                   {onAddFavorites && (
                     <button
                       onClick={handleAdd}
                       disabled={selectedIds.size === 0}
-                      className="px-2 py-1 bg-pokemon-blue text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.5rem] md:text-sm font-bold"
+                      className="px-2 py-1 bg-pokemon-blue text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.6rem] md:text-sm font-bold"
                     >
                       +
                     </button>
@@ -818,7 +818,7 @@ export function CardManager({
                     <button
                       onClick={handleRemove}
                       disabled={selectedIds.size === 0}
-                      className="px-2 py-1 bg-pokemon-red text-white rounded-lg hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.5rem] md:text-sm font-bold"
+                      className="px-2 py-1 bg-pokemon-red text-white rounded-lg hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.6rem] md:text-sm font-bold"
                     >
                       -
                     </button>
@@ -863,7 +863,7 @@ export function CardManager({
                         handleSelect(card.id);
                       }
                     }}
-                    className={`flex gap-1 p-3 border-2 rounded-lg transition-colors ${
+                    className={`flex gap-1 py-0.5 px-1 md:p-1 rounded-lg transition-colors ${
                       isSelected
                         ? 'bg-pokemon-blue text-white border-pokemon-red'
                         : hasFavorite
@@ -873,7 +873,7 @@ export function CardManager({
                   >
                     {/* 이해도 */}
                     {hasToken && (
-                      <div className="min-w-0 flex items-center" style={{ width: '20px', flexShrink: 0 }}>
+                      <div className="min-w-0 flex items-center" style={{ width: '15px', flexShrink: 0 }}>
                         <span className={`text-[0.6rem] md:text-sm font-medium ${isSelected ? 'text-yellow-200' : 'text-pokemon-yellow'}`}>
                           {understandingItem?.level === 'low' ? '하' : 
                            understandingItem?.level === 'medium' ? '중' : 
@@ -884,7 +884,7 @@ export function CardManager({
                     
                     {/* 카테고리 */}
                     <div className="min-w-0 flex items-center" style={{ width: '51px', flexShrink: 0 }}>
-                      <span className={`text-[0.7rem] md:text-sm font-medium truncate ${isSelected ? 'text-pokemon-borderAlt' : 'text-blue-400'}`}>
+                      <span className={`text-[0.65rem] md:text-sm font-medium truncate ${isSelected ? 'text-pokemon-borderAlt' : 'text-blue-400'}`}>
                         {card.category}
                       </span>
                     </div>
@@ -912,7 +912,7 @@ export function CardManager({
                           e.stopPropagation();
                           setPreviewCard(card);
                         }}
-                        className="p-2 text-pokemon-blue hover:text-pokemon-red transition-colors text-lg"
+                        className="text-[0.5rem] text-pokemon-blue hover:text-pokemon-red transition-colors text-lg"
                         title="카드 미리보기"
                       >
                         💬
