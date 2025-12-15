@@ -70,7 +70,7 @@ function App() {
       
       // 각 카테고리별로 파일명으로 그룹화하고 최근 7개 파일 선택
       const filteredCards: Card[] = [];
-      cardsByCategory.forEach((categoryCards, category) => {
+      cardsByCategory.forEach((categoryCards) => {
         // 파일명으로 그룹화
         const cardsByFile = new Map<string, Card[]>();
         categoryCards.forEach(card => {
