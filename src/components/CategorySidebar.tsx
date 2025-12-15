@@ -1,4 +1,4 @@
-import type { Category } from '../types';
+import type { Category, DateFilterMode, FavoriteFilterMode } from '../types';
 
 interface CategorySidebarProps {
   categories: Category[];
@@ -8,8 +8,10 @@ interface CategorySidebarProps {
   onClearSelection: () => void;
   orderMode: 'sequential' | 'random';
   onOrderModeChange: (mode: 'sequential' | 'random') => void;
-  filterMode: 'all' | 'favorites';
-  onFilterModeChange: (mode: 'all' | 'favorites') => void;
+  dateFilterMode: DateFilterMode;
+  onDateFilterModeChange: (mode: DateFilterMode) => void;
+  favoriteFilterMode: FavoriteFilterMode;
+  onFavoriteFilterModeChange: (mode: FavoriteFilterMode) => void;
   selectedUnderstandingLevels: Set<'low' | 'medium' | 'high'>;
   onToggleUnderstandingLevel: (level: 'low' | 'medium' | 'high') => void;
   onOpenTokenSettings: () => void;
@@ -25,8 +27,10 @@ export function CategorySidebar({
   onClearSelection,
   orderMode,
   onOrderModeChange,
-  filterMode,
-  onFilterModeChange,
+  dateFilterMode,
+  onDateFilterModeChange,
+  favoriteFilterMode,
+  onFavoriteFilterModeChange,
   selectedUnderstandingLevels,
   onToggleUnderstandingLevel,
   onOpenTokenSettings,
@@ -133,16 +137,16 @@ export function CategorySidebar({
           </div>
         </div>
         
-        {/* 필터 모드 */}
+        {/* 날짜 필터 모드 */}
         <div>
           <label className="block text-sm font-medium text-pokemon-text mb-2 font-bold">
-            필터
+            날짜 필터
           </label>
           <div className="flex gap-2">
             <button
-              onClick={() => onFilterModeChange('all')}
+              onClick={() => onDateFilterModeChange('all')}
               className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
-                filterMode === 'all'
+                dateFilterMode === 'all'
                   ? 'bg-pokemon-blue text-white'
                   : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
               }`}
@@ -150,9 +154,28 @@ export function CategorySidebar({
               전체
             </button>
             <button
+              onClick={() => onDateFilterModeChange('week')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                dateFilterMode === 'week'
+                  ? 'bg-pokemon-blue text-white'
+                  : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+              }`}
+            >
+              일주일
+            </button>
+          </div>
+        </div>
+        
+        {/* 즐겨찾기 필터 모드 */}
+        <div>
+          <label className="block text-sm font-medium text-pokemon-text mb-2 font-bold">
+            즐겨찾기 필터
+          </label>
+          <div className="flex gap-2">
+            <button
               onClick={() => {
                 if (hasToken) {
-                  onFilterModeChange('favorites');
+                  onFavoriteFilterModeChange('favorites');
                 } else {
                   onOpenTokenSettings();
                 }
@@ -161,13 +184,23 @@ export function CategorySidebar({
               className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
                 !hasToken
                   ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                  : filterMode === 'favorites'
+                  : favoriteFilterMode === 'favorites'
                   ? 'bg-pokemon-blue text-white'
                   : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
               }`}
               title={!hasToken ? 'GitHub 토큰을 설정해주세요' : undefined}
             >
               즐겨찾기
+            </button>
+            <button
+              onClick={() => onFavoriteFilterModeChange('normal')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                favoriteFilterMode === 'normal'
+                  ? 'bg-pokemon-blue text-white'
+                  : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+              }`}
+            >
+              일반
             </button>
           </div>
         </div>

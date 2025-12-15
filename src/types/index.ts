@@ -23,7 +23,9 @@ export interface FavoriteItem {
 }
 
 export type OrderMode = 'sequential' | 'random';
-export type FilterMode = 'all' | 'favorites';
+export type FilterMode = 'all' | 'favorites'; // Deprecated: use DateFilterMode and FavoriteFilterMode instead
+export type DateFilterMode = 'all' | 'week';
+export type FavoriteFilterMode = 'all' | 'favorites' | 'normal';
 
 export type UnderstandingLevel = 'low' | 'medium' | 'high' | null;
 

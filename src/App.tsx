@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { loadAllCards } from './utils/parser';
+import { loadAllCards, extractFileIndex } from './utils/parser';
 import { CategorySidebar } from './components/CategorySidebar';
 import { MobileMenu } from './components/MobileMenu';
 import { CardViewer } from './components/CardViewer';
@@ -8,13 +8,14 @@ import { CardManager } from './components/CardManager';
 import { useFavorites } from './hooks/useFavorites';
 import { useUnderstandings } from './hooks/useUnderstandings';
 import * as gist from './utils/gist';
-import type { Card, OrderMode, FilterMode } from './types';
+import type { Card, OrderMode, DateFilterMode, FavoriteFilterMode } from './types';
 
 function App() {
   const [categories, setCategories] = useState<{ name: string; cards: Card[] }[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [orderMode, setOrderMode] = useState<OrderMode>('sequential');
-  const [filterMode, setFilterMode] = useState<FilterMode>('all');
+  const [dateFilterMode, setDateFilterMode] = useState<DateFilterMode>('all');
+  const [favoriteFilterMode, setFavoriteFilterMode] = useState<FavoriteFilterMode>('all');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isTokenSettingsOpen, setIsTokenSettingsOpen] = useState(false);
   const [isFavoritesManagerOpen, setIsFavoritesManagerOpen] = useState(false);
@@ -43,16 +44,63 @@ function App() {
 
   // 선택된 카테고리에 따른 카드 목록
   const displayCards = useMemo(() => {
+    let cards: Card[] = [];
+    
+    // 카테고리 필터링
     if (selectedCategories.size === 0) {
       // 선택된 카테고리가 없으면 전체 카드
-      return categories.flatMap(cat => cat.cards);
+      cards = categories.flatMap(cat => cat.cards);
     } else {
       // 선택된 카테고리들의 카드만
-      return categories
+      cards = categories
         .filter(cat => selectedCategories.has(cat.name))
         .flatMap(cat => cat.cards);
     }
-  }, [categories, selectedCategories]);
+    
+    // 일주일 필터 (각 카테고리별 최근 7개 파일)
+    if (dateFilterMode === 'week') {
+      // 카테고리별로 그룹화
+      const cardsByCategory = new Map<string, Card[]>();
+      cards.forEach(card => {
+        if (!cardsByCategory.has(card.category)) {
+          cardsByCategory.set(card.category, []);
+        }
+        cardsByCategory.get(card.category)!.push(card);
+      });
+      
+      // 각 카테고리별로 파일명으로 그룹화하고 최근 7개 파일 선택
+      const filteredCards: Card[] = [];
+      cardsByCategory.forEach((categoryCards, category) => {
+        // 파일명으로 그룹화
+        const cardsByFile = new Map<string, Card[]>();
+        categoryCards.forEach(card => {
+          if (!cardsByFile.has(card.filename)) {
+            cardsByFile.set(card.filename, []);
+          }
+          cardsByFile.get(card.filename)!.push(card);
+        });
+        
+        // 파일명에서 index 추출하여 정렬
+        const files = Array.from(cardsByFile.entries())
+          .map(([filename, fileCards]) => ({
+            filename,
+            index: extractFileIndex(filename),
+            cards: fileCards,
+          }))
+          .sort((a, b) => b.index - a.index) // 내림차순 정렬
+          .slice(0, 7); // 상위 7개 파일
+        
+        // 선택된 파일의 카드들 추가
+        files.forEach(file => {
+          filteredCards.push(...file.cards);
+        });
+      });
+      
+      cards = filteredCards;
+    }
+    
+    return cards;
+  }, [categories, selectedCategories, dateFilterMode]);
 
   // 모든 카드 목록 (즐겨찾기 관리용)
   const allCards = useMemo(() => {
@@ -66,12 +114,12 @@ function App() {
     loadUnderstandings();
   };
 
-  // 토큰이 없을 때 필터 모드를 'all'로 강제
+  // 토큰이 없을 때 즐겨찾기 필터 모드를 'all'로 강제 (단, 'normal'은 제외 - 토큰 없이도 동작 가능)
   useEffect(() => {
-    if (!hasToken && filterMode === 'favorites') {
-      setFilterMode('all');
+    if (!hasToken && favoriteFilterMode === 'favorites') {
+      setFavoriteFilterMode('all');
     }
-  }, [hasToken, filterMode]);
+  }, [hasToken, favoriteFilterMode]);
 
   // 토큰이 없을 때 즐겨찾기 상태 초기화
   useEffect(() => {
@@ -132,8 +180,10 @@ function App() {
             }}
             orderMode={orderMode}
             onOrderModeChange={setOrderMode}
-            filterMode={filterMode}
-            onFilterModeChange={setFilterMode}
+            dateFilterMode={dateFilterMode}
+            onDateFilterModeChange={setDateFilterMode}
+            favoriteFilterMode={favoriteFilterMode}
+            onFavoriteFilterModeChange={setFavoriteFilterMode}
             selectedUnderstandingLevels={selectedUnderstandingLevels}
             onToggleUnderstandingLevel={(level) => {
               const newSet = new Set(selectedUnderstandingLevels);
@@ -171,8 +221,10 @@ function App() {
           }}
           orderMode={orderMode}
           onOrderModeChange={setOrderMode}
-          filterMode={filterMode}
-          onFilterModeChange={setFilterMode}
+          dateFilterMode={dateFilterMode}
+          onDateFilterModeChange={setDateFilterMode}
+          favoriteFilterMode={favoriteFilterMode}
+          onFavoriteFilterModeChange={setFavoriteFilterMode}
           selectedUnderstandingLevels={selectedUnderstandingLevels}
           onToggleUnderstandingLevel={(level) => {
             const newSet = new Set(selectedUnderstandingLevels);
@@ -195,7 +247,8 @@ function App() {
           <CardViewer
             cards={displayCards}
             orderMode={orderMode}
-            filterMode={filterMode}
+            dateFilterMode={dateFilterMode}
+            favoriteFilterMode={favoriteFilterMode}
             favoriteIds={hasToken ? favoriteIds : new Set()}
             onToggleFavorite={toggleFavorite}
             selectedUnderstandingLevels={selectedUnderstandingLevels}

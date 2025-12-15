@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import type { Card, OrderMode, FilterMode, UnderstandingItem } from '../types';
+import type { Card, OrderMode, DateFilterMode, FavoriteFilterMode, UnderstandingItem } from '../types';
 import { CardComponent } from './Card';
 
 interface CardViewerProps {
   cards: Card[];
   orderMode: OrderMode;
-  filterMode: FilterMode;
+  dateFilterMode: DateFilterMode;
+  favoriteFilterMode: FavoriteFilterMode;
   favoriteIds: Set<string>;
   onToggleFavorite: (cardId: string) => void;
   selectedUnderstandingLevels: Set<'low' | 'medium' | 'high'>;
@@ -19,7 +20,8 @@ interface CardViewerProps {
 export function CardViewer({
   cards,
   orderMode,
-  filterMode,
+  dateFilterMode,
+  favoriteFilterMode,
   favoriteIds,
   onToggleFavorite,
   selectedUnderstandingLevels,
@@ -46,9 +48,13 @@ export function CardViewer({
     let result = cards;
     
     // 즐겨찾기 필터
-    if (filterMode === 'favorites') {
+    if (favoriteFilterMode === 'favorites') {
       result = result.filter(card => favoriteIds.has(card.id));
+    } else if (favoriteFilterMode === 'normal') {
+      // 일반 필터: 즐겨찾기하지 않은 카드만
+      result = result.filter(card => !favoriteIds.has(card.id));
     }
+    // favoriteFilterMode === 'all'인 경우 필터링하지 않음
     
     // 이해도 필터
     if (selectedUnderstandingLevels.size > 0) {
@@ -62,7 +68,7 @@ export function CardViewer({
     }
     
     return result;
-  }, [cards, filterMode, favoriteIds, selectedUnderstandingLevels, understandingItems]);
+  }, [cards, favoriteFilterMode, favoriteIds, selectedUnderstandingLevels, understandingItems]);
 
   // 순서 모드에 따른 인덱스 배열
   const displayIndices = useMemo(() => {
@@ -90,7 +96,7 @@ export function CardViewer({
     if (orderMode === 'random') {
       setShuffledIndices([]);
     }
-  }, [filterMode, orderMode, filteredCards.length]);
+  }, [dateFilterMode, favoriteFilterMode, orderMode, filteredCards.length]);
 
   // 랜덤 재셔플 함수
   const handleReshuffle = () => {
@@ -198,8 +204,10 @@ export function CardViewer({
       <div className="flex items-center justify-center h-full bg-pokemon-bg">
         <div className="text-center">
           <p className="text-pokemon-text text-lg font-bold">
-            {filterMode === 'favorites' 
+            {favoriteFilterMode === 'favorites' 
               ? '즐겨찾기한 카드가 없습니다.' 
+              : favoriteFilterMode === 'normal'
+              ? '일반 카드가 없습니다.'
               : '표시할 카드가 없습니다.'}
           </p>
         </div>

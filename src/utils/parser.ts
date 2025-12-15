@@ -1,6 +1,19 @@
 import type { Card, Category, ParsedData } from '../types';
 
 /**
+ * 파일명에서 index를 추출합니다.
+ * {index}-{month}-{day}.md 형식: index 추출
+ * {index}.md 형식: index를 1로 처리 (기본값)
+ */
+export function extractFileIndex(filename: string): number {
+  const match = filename.match(/^(\d+)(?:-.*)?\.md$/);
+  if (match) {
+    return parseInt(match[1], 10);
+  }
+  return 1; // 기본값
+}
+
+/**
  * MD 파일 내용을 파싱하여 카드 배열로 변환
  */
 export function parseMarkdown(content: string, category: string, filename: string): Card[] {

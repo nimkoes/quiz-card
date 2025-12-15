@@ -1,4 +1,4 @@
-import type { Category } from '../types';
+import type { Category, DateFilterMode, FavoriteFilterMode } from '../types';
 
 interface MobileMenuProps {
   categories: Category[];
@@ -8,8 +8,10 @@ interface MobileMenuProps {
   onClearSelection: () => void;
   orderMode: 'sequential' | 'random';
   onOrderModeChange: (mode: 'sequential' | 'random') => void;
-  filterMode: 'all' | 'favorites';
-  onFilterModeChange: (mode: 'all' | 'favorites') => void;
+  dateFilterMode: DateFilterMode;
+  onDateFilterModeChange: (mode: DateFilterMode) => void;
+  favoriteFilterMode: FavoriteFilterMode;
+  onFavoriteFilterModeChange: (mode: FavoriteFilterMode) => void;
   selectedUnderstandingLevels: Set<'low' | 'medium' | 'high'>;
   onToggleUnderstandingLevel: (level: 'low' | 'medium' | 'high') => void;
   onOpenTokenSettings: () => void;
@@ -27,8 +29,10 @@ export function MobileMenu({
   onClearSelection,
   orderMode,
   onOrderModeChange,
-  filterMode,
-  onFilterModeChange,
+  dateFilterMode,
+  onDateFilterModeChange,
+  favoriteFilterMode,
+  onFavoriteFilterModeChange,
   selectedUnderstandingLevels,
   onToggleUnderstandingLevel,
   onOpenTokenSettings,
@@ -165,13 +169,13 @@ export function MobileMenu({
               </div>
             </div>
 
-            {/* 필터 모드 */}
+            {/* 날짜 필터 모드 */}
             <div>
               <div className="flex gap-2">
                 <button
-                    onClick={() => onFilterModeChange('all')}
+                    onClick={() => onDateFilterModeChange('all')}
                     className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
-                        filterMode === 'all'
+                        dateFilterMode === 'all'
                             ? 'bg-pokemon-blue text-white'
                             : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
                     }`}
@@ -179,9 +183,25 @@ export function MobileMenu({
                   전체
                 </button>
                 <button
+                    onClick={() => onDateFilterModeChange('week')}
+                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
+                        dateFilterMode === 'week'
+                            ? 'bg-pokemon-blue text-white'
+                            : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+                    }`}
+                >
+                  일주일
+                </button>
+              </div>
+            </div>
+
+            {/* 즐겨찾기 필터 모드 */}
+            <div>
+              <div className="flex gap-2">
+                <button
                     onClick={() => {
                       if (hasToken) {
-                        onFilterModeChange('favorites');
+                        onFavoriteFilterModeChange('favorites');
                       } else {
                         onOpenTokenSettings();
                       }
@@ -190,13 +210,23 @@ export function MobileMenu({
                     className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
                         !hasToken
                             ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                            : filterMode === 'favorites'
+                            : favoriteFilterMode === 'favorites'
                                 ? 'bg-pokemon-blue text-white'
                                 : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
                     }`}
                     title={!hasToken ? 'GitHub 토큰을 설정해주세요' : undefined}
                 >
                   즐겨찾기
+                </button>
+                <button
+                    onClick={() => onFavoriteFilterModeChange('normal')}
+                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
+                        favoriteFilterMode === 'normal'
+                            ? 'bg-pokemon-blue text-white'
+                            : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+                    }`}
+                >
+                  일반
                 </button>
               </div>
             </div>
