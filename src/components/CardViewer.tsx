@@ -319,7 +319,7 @@ export function CardViewer({
             onClick={onOpenFavoritesManager}
             className="text-sm text-pokemon-blue hover:text-pokemon-red font-bold transition-colors"
           >
-            전체 카드 관리
+            카드 관리
           </button>
         )}
       </div>

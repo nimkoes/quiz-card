@@ -635,7 +635,7 @@ export function CardManager({
         {/* 헤더 */}
         <div className="p-1 md:p-4 border-b-2 border-pokemon-border flex items-center justify-between flex-shrink-0">
           <h2 className="text-[0.7rem] md:text-2xl font-bold text-pokemon-text">
-            전체 카드 관리 ({filteredAndSortedCards.length}개)
+            카드 관리 ({filteredAndSortedCards.length}개)
           </h2>
           <button
             onClick={onClose}
