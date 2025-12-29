@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { Card, FavoriteItem, UnderstandingItem, UnderstandingLevel } from '../types';
+import type { Card, FavoriteItem, UnderstandingItem, UnderstandingLevel, FavoriteFilterMode, DateFilterMode } from '../types';
+import { extractFileIndex } from '../utils/parser';
 
 interface CardManagerProps {
   isOpen: boolean;
@@ -40,6 +41,8 @@ export function CardManager({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryFilters, setSelectedCategoryFilters] = useState<Set<string>>(new Set());
   const [selectedUnderstandingFilters, setSelectedUnderstandingFilters] = useState<Set<UnderstandingLevel>>(new Set());
+  const [favoriteFilterMode, setFavoriteFilterMode] = useState<FavoriteFilterMode>('all');
+  const [dateFilterMode, setDateFilterMode] = useState<DateFilterMode>('all');
   const [sortState, setSortState] = useState<SortState>({
     understanding: null,
     favorite: null,
@@ -83,6 +86,56 @@ export function CardManager({
         if (!level) return false;
         return selectedUnderstandingFilters.has(level);
       });
+    }
+
+    // 즐겨찾기 필터
+    if (favoriteFilterMode === 'favorites') {
+      cards = cards.filter(({ favoriteItem }) => favoriteItem !== undefined);
+    } else if (favoriteFilterMode === 'normal') {
+      cards = cards.filter(({ favoriteItem }) => favoriteItem === undefined);
+    }
+    // favoriteFilterMode === 'all'인 경우 필터링하지 않음
+
+    // 일주일 필터 (각 카테고리별 최근 7개 파일)
+    if (dateFilterMode === 'week') {
+      // 카테고리별로 그룹화
+      const cardsByCategory = new Map<string, typeof cards>();
+      cards.forEach(item => {
+        if (!cardsByCategory.has(item.card.category)) {
+          cardsByCategory.set(item.card.category, []);
+        }
+        cardsByCategory.get(item.card.category)!.push(item);
+      });
+      
+      // 각 카테고리별로 파일명으로 그룹화하고 최근 7개 파일 선택
+      const filteredCards: typeof cards = [];
+      cardsByCategory.forEach((categoryCards) => {
+        // 파일명으로 그룹화
+        const cardsByFile = new Map<string, typeof cards>();
+        categoryCards.forEach(item => {
+          if (!cardsByFile.has(item.card.filename)) {
+            cardsByFile.set(item.card.filename, []);
+          }
+          cardsByFile.get(item.card.filename)!.push(item);
+        });
+        
+        // 파일명에서 index 추출하여 정렬
+        const files = Array.from(cardsByFile.entries())
+          .map(([filename, fileCards]) => ({
+            filename,
+            index: extractFileIndex(filename),
+            cards: fileCards,
+          }))
+          .sort((a, b) => b.index - a.index) // 내림차순 정렬
+          .slice(0, 7); // 상위 7개 파일
+        
+        // 선택된 파일의 카드들 추가
+        files.forEach(file => {
+          filteredCards.push(...file.cards);
+        });
+      });
+      
+      cards = filteredCards;
     }
 
     // 정렬
@@ -157,7 +210,7 @@ export function CardManager({
     }
 
     return cards;
-  }, [allCards, favoriteItems, understandingItems, searchQuery, selectedCategoryFilters, selectedUnderstandingFilters, sortState]);
+  }, [allCards, favoriteItems, understandingItems, searchQuery, selectedCategoryFilters, selectedUnderstandingFilters, favoriteFilterMode, dateFilterMode, sortState]);
 
   const handleSelectAll = () => {
     if (selectedIds.size === filteredAndSortedCards.length) {
@@ -698,6 +751,36 @@ export function CardManager({
               }`}
             >
               상
+            </button>
+            {/* 즐겨찾기 필터 버튼 */}
+            <button
+              onClick={() => {
+                if (hasToken) {
+                  setFavoriteFilterMode(favoriteFilterMode === 'favorites' ? 'all' : 'favorites');
+                }
+              }}
+              disabled={!hasToken}
+              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors ${
+                !hasToken
+                  ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                  : favoriteFilterMode === 'favorites'
+                  ? 'bg-pokemon-blue text-white'
+                  : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
+              }`}
+              title={!hasToken ? 'GitHub 토큰을 설정해주세요' : undefined}
+            >
+              ☆
+            </button>
+            {/* 일주일 필터 버튼 */}
+            <button
+              onClick={() => setDateFilterMode(dateFilterMode === 'week' ? 'all' : 'week')}
+              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors ${
+                dateFilterMode === 'week'
+                  ? 'bg-pokemon-blue text-white'
+                  : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
+              }`}
+            >
+              일주일
             </button>
           </div>
           
