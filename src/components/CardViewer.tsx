@@ -223,11 +223,11 @@ export function CardViewer({
         {/* 왼쪽: 카드 번호 */}
         <div className="flex items-center gap-3">
           <div className="text-sm text-pokemon-text font-bold flex items-center gap-1">
-            {currentIndex + 1} / {filteredCards.length}
+            {currentIndex + 1}/{filteredCards.length}
             {currentCard && currentCard.month !== undefined && currentCard.day !== undefined && (
               <span className="ml-2 flex items-center gap-1">
-                <img src={calendarIcon} alt="calendar" className="w-[1.3rem] h-[1.3rem]" />
-                {currentCard.month} / {currentCard.day}
+                <img src={calendarIcon} alt="calendar" className="w-[1.1rem] h-[1.1rem]" />
+                {currentCard.month}/{currentCard.day}
               </span>
             )}
           </div>
