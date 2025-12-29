@@ -14,11 +14,30 @@ export function extractFileIndex(filename: string): number {
 }
 
 /**
+ * 파일명에서 날짜 정보를 추출합니다.
+ * {seq}-{month}_{day}.md 형식: month와 day 추출
+ * 날짜 정보가 없으면 null 반환
+ */
+export function extractDateFromFilename(filename: string): { month: number; day: number } | null {
+  const match = filename.match(/^\d+-(\d+)_(\d+)\.md$/);
+  if (match) {
+    return {
+      month: parseInt(match[1], 10),
+      day: parseInt(match[2], 10),
+    };
+  }
+  return null;
+}
+
+/**
  * MD 파일 내용을 파싱하여 카드 배열로 변환
  */
 export function parseMarkdown(content: string, category: string, filename: string): Card[] {
   const cards: Card[] = [];
   const lines = content.split('\n');
+  
+  // 파일명에서 날짜 정보 추출
+  const dateInfo = extractDateFromFilename(filename);
   
   let currentCard: { content: string[]; explanation?: string } | null = null;
   let cardIndex = 0;
@@ -50,6 +69,8 @@ export function parseMarkdown(content: string, category: string, filename: strin
             content,
             explanation: explanation || undefined,
             index: cardIndex,
+            month: dateInfo?.month,
+            day: dateInfo?.day,
           });
           cardIndex++;
         }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import type { Card, OrderMode, DateFilterMode, FavoriteFilterMode, UnderstandingItem } from '../types';
 import { CardComponent } from './Card';
+import calendarIcon from '../assets/calendar.svg';
 
 interface CardViewerProps {
   cards: Card[];
@@ -221,8 +222,14 @@ export function CardViewer({
       <div className="px-4 py-2 bg-pokemon-bg border-b-4 border-pokemon-border flex items-center justify-between flex-shrink-0">
         {/* 왼쪽: 카드 번호 */}
         <div className="flex items-center gap-3">
-          <div className="text-sm text-pokemon-text font-bold">
+          <div className="text-sm text-pokemon-text font-bold flex items-center gap-1">
             {currentIndex + 1} / {filteredCards.length}
+            {currentCard && currentCard.month !== undefined && currentCard.day !== undefined && (
+              <span className="ml-2 flex items-center gap-1">
+                <img src={calendarIcon} alt="calendar" className="w-[1.3rem] h-[1.3rem]" />
+                {currentCard.month} / {currentCard.day}
+              </span>
+            )}
           </div>
           {orderMode === 'random' && (
             <button
