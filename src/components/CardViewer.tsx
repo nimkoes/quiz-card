@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import type { Card, OrderMode, DateFilterMode, FavoriteFilterMode, UnderstandingItem, TrashFilterMode } from '../types';
 import { CardComponent } from './Card';
 import calendarIcon from '../assets/calendar.svg';
+import pokeballIcon from '../assets/pokeball.svg';
 import trashInactiveIcon from '../assets/trash-inactive.svg';
 import trashActiveIcon from '../assets/trash-active.svg';
 
@@ -236,12 +237,27 @@ export function CardViewer({
       <div className="px-4 py-2 bg-pokemon-bg border-b-4 border-pokemon-border flex items-center justify-between flex-shrink-0">
         {/* 왼쪽: 카드 번호 */}
         <div className="flex items-center gap-3">
-          <div className="text-sm text-pokemon-text font-bold flex items-center gap-1">
-            {currentIndex + 1}/{filteredCards.length}
+          {/* 모바일: 두 줄로 표시 */}
+          <div className="md:hidden flex flex-col">
+            {currentCard && currentCard.month !== undefined && currentCard.day !== undefined && (
+              <div className="text-sm text-pokemon-text font-bold flex items-center gap-1">
+                <img src={calendarIcon} alt="calendar" className="w-[1.3rem] h-[1.3rem]" />
+                {currentCard.month} / {currentCard.day}
+              </div>
+            )}
+            <div className="text-sm text-pokemon-text font-bold flex items-center gap-1">
+              <img src={pokeballIcon} alt="pokeball" className="w-[1.3rem] h-[1.3rem]" />
+              {currentIndex + 1} / {filteredCards.length}
+            </div>
+          </div>
+          {/* PC: 한 줄로 표시 */}
+          <div className="hidden md:flex items-center gap-1 text-sm text-pokemon-text font-bold">
+            <img src={pokeballIcon} alt="pokeball" className="w-[1.3rem] h-[1.3rem]" />
+            {currentIndex + 1} / {filteredCards.length}
             {currentCard && currentCard.month !== undefined && currentCard.day !== undefined && (
               <span className="ml-2 flex items-center gap-1">
-                <img src={calendarIcon} alt="calendar" className="w-[1.1rem] h-[1.1rem]" />
-                {currentCard.month}/{currentCard.day}
+                <img src={calendarIcon} alt="calendar" className="w-[1.3rem] h-[1.3rem]" />
+                {currentCard.month} / {currentCard.day}
               </span>
             )}
           </div>
@@ -344,9 +360,9 @@ export function CardViewer({
         {onOpenFavoritesManager && (
           <button
             onClick={onOpenFavoritesManager}
-            className="text-sm text-pokemon-blue hover:text-pokemon-red font-bold transition-colors"
+            className="text-[1.2em] text-pokemon-blue hover:text-pokemon-red font-bold transition-colors"
           >
-            카드 관리
+            🔍
           </button>
         )}
       </div>

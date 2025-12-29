@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <defs>
+    <clipPath id="topHalf">
+      <rect x="0" y="0" width="24" height="12"/>
+    </clipPath>
+    <clipPath id="bottomHalf">
+      <rect x="0" y="12" width="24" height="12"/>
+    </clipPath>
+  </defs>
+  <!-- 외곽 원 -->
+  <circle cx="12" cy="12" r="10" fill="#ffffff" stroke="#000000" stroke-width="1"/>
+  <!-- 상단 빨간색 반원 -->
+  <circle cx="12" cy="12" r="10" fill="#ff0000" clip-path="url(#topHalf)"/>
+  <!-- 중간 검은색 가로선 (band) -->
+  <rect x="2" y="11" width="20" height="2" fill="#000000"/>
+  <!-- 중앙 버튼 (검은색 원) -->
+  <circle cx="12" cy="12" r="3" fill="#000000"/>
+  <!-- 중앙 버튼 내부 (흰색 원) -->
+  <circle cx="12" cy="12" r="1.5" fill="#ffffff"/>
+</svg>
+
