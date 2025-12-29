@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { Card, FavoriteItem, UnderstandingItem, UnderstandingLevel, FavoriteFilterMode, DateFilterMode } from '../types';
 import { extractFileIndex } from '../utils/parser';
+import calendarIcon from '../assets/calendar.svg';
 
 interface CardManagerProps {
   isOpen: boolean;
@@ -1017,7 +1018,15 @@ export function CardManager({
             <div className="flex-1 min-h-0 overflow-y-auto p-4">
               <div className="space-y-4">
                 <div>
-                  <div className="text-sm text-pokemon-text opacity-75 mb-2">내용</div>
+                  <div className="text-sm text-pokemon-text opacity-75 mb-2 flex items-center gap-2">
+                    <span>내용</span>
+                    {previewCard.month !== undefined && previewCard.day !== undefined && (
+                      <span className="flex items-center gap-1">
+                        <img src={calendarIcon} alt="calendar" className="w-[1.3rem] h-[1.3rem]" />
+                        {previewCard.month} / {previewCard.day}
+                      </span>
+                    )}
+                  </div>
                   <div className="text-pokemon-text text-[0.9em] leading-relaxed">
                     {renderMarkdown(previewCard.content)}
                   </div>
