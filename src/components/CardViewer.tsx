@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import type { Card, OrderMode, DateFilterMode, FavoriteFilterMode, UnderstandingItem } from '../types';
+import type { Card, OrderMode, DateFilterMode, FavoriteFilterMode, UnderstandingItem, TrashFilterMode } from '../types';
 import { CardComponent } from './Card';
 import calendarIcon from '../assets/calendar.svg';
+import trashInactiveIcon from '../assets/trash-inactive.svg';
+import trashActiveIcon from '../assets/trash-active.svg';
 
 interface CardViewerProps {
   cards: Card[];
@@ -16,6 +18,9 @@ interface CardViewerProps {
   hasToken: boolean;
   onRequestToken: () => void;
   onOpenFavoritesManager?: () => void;
+  trashIds?: Set<string>;
+  onToggleTrash?: (cardId: string) => void;
+  trashFilterMode?: TrashFilterMode;
 }
 
 export function CardViewer({
@@ -31,6 +36,9 @@ export function CardViewer({
   hasToken,
   onRequestToken,
   onOpenFavoritesManager,
+  trashIds = new Set(),
+  onToggleTrash,
+  trashFilterMode = 'all',
 }: CardViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showExplanation, setShowExplanation] = useState(false);
@@ -68,8 +76,14 @@ export function CardViewer({
       });
     }
     
+    // 휴지통 필터
+    if (trashFilterMode === 'trash') {
+      result = result.filter(card => trashIds.has(card.id));
+    }
+    // trashFilterMode === 'all'인 경우 필터링하지 않음
+    
     return result;
-  }, [cards, favoriteFilterMode, favoriteIds, selectedUnderstandingLevels, understandingItems]);
+  }, [cards, favoriteFilterMode, favoriteIds, selectedUnderstandingLevels, understandingItems, trashFilterMode, trashIds]);
 
   // 순서 모드에 따른 인덱스 배열
   const displayIndices = useMemo(() => {
@@ -308,6 +322,19 @@ export function CardViewer({
                 >
                   상
                 </button>
+                {hasToken && onToggleTrash && (
+                  <button
+                    onClick={() => onToggleTrash(currentCard.id)}
+                    className="p-2 rounded transition-colors"
+                    title={trashIds.has(currentCard.id) ? '삭제 대상 해제' : '삭제 대상으로 표시'}
+                  >
+                    <img 
+                      src={trashIds.has(currentCard.id) ? trashActiveIcon : trashInactiveIcon} 
+                      alt="trash" 
+                      className="w-6 h-6" 
+                    />
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -355,6 +382,8 @@ export function CardViewer({
               onToggleExplanation={() => setShowExplanation(!showExplanation)}
               hasToken={hasToken}
               onRequestToken={onRequestToken}
+              isTrash={trashIds.has(currentCard.id)}
+              onToggleTrash={onToggleTrash ? () => onToggleTrash(currentCard.id) : undefined}
             />
           </div>
         )}

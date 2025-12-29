@@ -2,6 +2,8 @@ const GIST_FILENAME = 'quiz-card-favorites.json';
 const GIST_DESCRIPTION = 'Quiz Card Favorites';
 const GIST_UNDERSTANDINGS_FILENAME = 'quiz-card-understandings.json';
 const GIST_UNDERSTANDINGS_DESCRIPTION = 'Quiz Card Understandings';
+const GIST_TRASH_FILENAME = 'quiz-card-trash.json';
+const GIST_TRASH_DESCRIPTION = 'Quiz Card Trash';
 
 export interface GistResponse {
   id: string;
@@ -317,5 +319,135 @@ export function saveUnderstandingsGistId(gistId: string): void {
  */
 export function getUnderstandingsGistId(): string | null {
   return localStorage.getItem('understandings_gist_id');
+}
+
+/**
+ * GitHub API를 사용하여 휴지통 Gist를 생성합니다.
+ */
+export async function createTrashGist(token: string, content: Array<{ cardId: string; addedAt: string }>): Promise<string> {
+  const response = await fetch('https://api.github.com/gists', {
+    method: 'POST',
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      description: GIST_TRASH_DESCRIPTION,
+      public: false,
+      files: {
+        [GIST_TRASH_FILENAME]: {
+          content: JSON.stringify(content, null, 2),
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to create Trash Gist');
+  }
+
+  const data: GistResponse = await response.json();
+  return data.id;
+}
+
+/**
+ * GitHub API를 사용하여 휴지통 Gist를 업데이트합니다.
+ */
+export async function updateTrashGist(token: string, gistId: string, content: Array<{ cardId: string; addedAt: string }>): Promise<void> {
+  const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      description: GIST_TRASH_DESCRIPTION,
+      files: {
+        [GIST_TRASH_FILENAME]: {
+          content: JSON.stringify(content, null, 2),
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to update Trash Gist');
+  }
+}
+
+/**
+ * GitHub API를 사용하여 휴지통 Gist를 조회합니다.
+ */
+export async function getTrashGist(token: string, gistId: string): Promise<Array<{ cardId: string; addedAt: string }>> {
+  const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to get Trash Gist');
+  }
+
+  const data: GistResponse = await response.json();
+  const file = data.files[GIST_TRASH_FILENAME];
+  
+  if (!file) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(file.content);
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * 사용자의 모든 Gist를 조회하여 Quiz Card Trash Gist를 찾습니다.
+ */
+export async function findTrashGist(token: string): Promise<string | null> {
+  const response = await fetch('https://api.github.com/gists', {
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to list Gists');
+  }
+
+  const gists: GistResponse[] = await response.json();
+  const trashGist = gists.find(
+    gist => gist.files[GIST_TRASH_FILENAME] && gist.description === GIST_TRASH_DESCRIPTION
+  );
+
+  return trashGist?.id || null;
+}
+
+/**
+ * 휴지통 Gist ID를 localStorage에 저장합니다.
+ */
+export function saveTrashGistId(gistId: string): void {
+  localStorage.setItem('trash_gist_id', gistId);
+}
+
+/**
+ * localStorage에서 휴지통 Gist ID를 가져옵니다.
+ */
+export function getTrashGistId(): string | null {
+  return localStorage.getItem('trash_gist_id');
 }
 

@@ -1,4 +1,4 @@
-import type { Category, DateFilterMode, FavoriteFilterMode } from '../types';
+import type { Category, DateFilterMode, FavoriteFilterMode, TrashFilterMode } from '../types';
 
 interface CategorySidebarProps {
   categories: Category[];
@@ -17,6 +17,8 @@ interface CategorySidebarProps {
   onOpenTokenSettings: () => void;
   onOpenFavoritesManager?: () => void;
   hasToken: boolean;
+  trashFilterMode?: TrashFilterMode;
+  onTrashFilterModeChange?: (mode: TrashFilterMode) => void;
 }
 
 export function CategorySidebar({
@@ -36,6 +38,8 @@ export function CategorySidebar({
   onOpenTokenSettings,
   onOpenFavoritesManager,
   hasToken,
+  trashFilterMode = 'all',
+  onTrashFilterModeChange,
 }: CategorySidebarProps) {
   return (
     <div className="w-64 bg-pokemon-bg border-r-4 border-pokemon-border h-full flex flex-col">
@@ -243,6 +247,25 @@ export function CategorySidebar({
             </button>
           </div>
         </div>
+        
+        {/* 휴지통 필터 */}
+        {hasToken && onTrashFilterModeChange && (
+          <div>
+            <label className="block text-sm font-medium text-pokemon-text mb-2 font-bold">
+              휴지통
+            </label>
+            <button
+              onClick={() => onTrashFilterModeChange(trashFilterMode === 'trash' ? 'all' : 'trash')}
+              className={`w-full px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+                trashFilterMode === 'trash'
+                  ? 'bg-pokemon-blue text-white'
+                  : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+              }`}
+            >
+              🗑
+            </button>
+          </div>
+        )}
         
         {/* 토큰 설정 */}
         <button

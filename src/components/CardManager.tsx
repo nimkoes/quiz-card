@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { Card, FavoriteItem, UnderstandingItem, UnderstandingLevel, FavoriteFilterMode, DateFilterMode } from '../types';
+import type { Card, FavoriteItem, UnderstandingItem, UnderstandingLevel, FavoriteFilterMode, DateFilterMode, TrashItem, TrashFilterMode } from '../types';
 import { extractFileIndex } from '../utils/parser';
 import calendarIcon from '../assets/calendar.svg';
 
@@ -10,6 +10,7 @@ interface CardManagerProps {
   allCards: Card[];
   favoriteItems: Map<string, FavoriteItem>;
   understandingItems: Map<string, UnderstandingItem>;
+  trashItems?: Map<string, TrashItem>;
   categories: { name: string; cards: Card[] }[];
   onRemoveFavorites?: (cardIds: string[]) => void;
   onAddFavorites?: (cardIds: string[]) => void;
@@ -31,6 +32,7 @@ export function CardManager({
   allCards,
   favoriteItems,
   understandingItems,
+  trashItems = new Map(),
   categories,
   onRemoveFavorites,
   onAddFavorites,
@@ -44,6 +46,7 @@ export function CardManager({
   const [selectedUnderstandingFilters, setSelectedUnderstandingFilters] = useState<Set<UnderstandingLevel>>(new Set());
   const [favoriteFilterMode, setFavoriteFilterMode] = useState<FavoriteFilterMode>('all');
   const [dateFilterMode, setDateFilterMode] = useState<DateFilterMode>('all');
+  const [trashFilterMode, setTrashFilterMode] = useState<TrashFilterMode>('all');
   const [sortState, setSortState] = useState<SortState>({
     understanding: null,
     favorite: null,
@@ -65,6 +68,7 @@ export function CardManager({
       card,
       favoriteItem: favoriteItems.get(card.id),
       understandingItem: understandingItems.get(card.id),
+      trashItem: trashItems.get(card.id),
     }));
 
     // 검색 필터
@@ -139,6 +143,12 @@ export function CardManager({
       cards = filteredCards;
     }
 
+    // 휴지통 필터
+    if (trashFilterMode === 'trash') {
+      cards = cards.filter(({ trashItem }) => trashItem !== undefined);
+    }
+    // trashFilterMode === 'all'인 경우 필터링하지 않음
+
     // 정렬
     if (sortState.priority.length > 0) {
       // 복합 정렬 적용
@@ -211,7 +221,7 @@ export function CardManager({
     }
 
     return cards;
-  }, [allCards, favoriteItems, understandingItems, searchQuery, selectedCategoryFilters, selectedUnderstandingFilters, favoriteFilterMode, dateFilterMode, sortState]);
+  }, [allCards, favoriteItems, understandingItems, trashItems, searchQuery, selectedCategoryFilters, selectedUnderstandingFilters, favoriteFilterMode, dateFilterMode, trashFilterMode, sortState]);
 
   const handleSelectAll = () => {
     if (selectedIds.size === filteredAndSortedCards.length) {
@@ -783,6 +793,19 @@ export function CardManager({
             >
               일주일
             </button>
+            {/* 휴지통 필터 버튼 */}
+            {hasToken && (
+              <button
+                onClick={() => setTrashFilterMode(trashFilterMode === 'trash' ? 'all' : 'trash')}
+                className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors ${
+                  trashFilterMode === 'trash'
+                    ? 'bg-pokemon-blue text-white'
+                    : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
+                }`}
+              >
+                🗑
+              </button>
+            )}
           </div>
           
           {/* 정렬 버튼 */}

@@ -1,4 +1,4 @@
-import type { Category, DateFilterMode, FavoriteFilterMode } from '../types';
+import type { Category, DateFilterMode, FavoriteFilterMode, TrashFilterMode } from '../types';
 
 interface MobileMenuProps {
   categories: Category[];
@@ -19,6 +19,8 @@ interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
   hasToken: boolean;
+  trashFilterMode?: TrashFilterMode;
+  onTrashFilterModeChange?: (mode: TrashFilterMode) => void;
 }
 
 export function MobileMenu({
@@ -40,6 +42,8 @@ export function MobileMenu({
   isOpen,
   onClose,
   hasToken,
+  trashFilterMode = 'all',
+  onTrashFilterModeChange,
 }: MobileMenuProps) {
   if (!isOpen) return null;
 
@@ -266,6 +270,24 @@ export function MobileMenu({
                 </button>
               </div>
             </div>
+
+            {/* 휴지통 필터 */}
+            {hasToken && onTrashFilterModeChange && (
+              <div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onTrashFilterModeChange(trashFilterMode === 'trash' ? 'all' : 'trash')}
+                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
+                      trashFilterMode === 'trash'
+                        ? 'bg-pokemon-blue text-white'
+                        : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
+                    }`}
+                  >
+                    🗑
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* 토큰 설정 */}
             <button

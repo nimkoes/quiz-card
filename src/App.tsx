@@ -7,8 +7,9 @@ import { TokenSettings } from './components/TokenSettings';
 import { CardManager } from './components/CardManager';
 import { useFavorites } from './hooks/useFavorites';
 import { useUnderstandings } from './hooks/useUnderstandings';
+import { useTrash } from './hooks/useTrash';
 import * as gist from './utils/gist';
-import type { Card, OrderMode, DateFilterMode, FavoriteFilterMode } from './types';
+import type { Card, OrderMode, DateFilterMode, FavoriteFilterMode, TrashFilterMode } from './types';
 
 function App() {
   const [categories, setCategories] = useState<{ name: string; cards: Card[] }[]>([]);
@@ -16,6 +17,7 @@ function App() {
   const [orderMode, setOrderMode] = useState<OrderMode>('sequential');
   const [dateFilterMode, setDateFilterMode] = useState<DateFilterMode>('all');
   const [favoriteFilterMode, setFavoriteFilterMode] = useState<FavoriteFilterMode>('all');
+  const [trashFilterMode, setTrashFilterMode] = useState<TrashFilterMode>('all');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isTokenSettingsOpen, setIsTokenSettingsOpen] = useState(false);
   const [isFavoritesManagerOpen, setIsFavoritesManagerOpen] = useState(false);
@@ -23,6 +25,7 @@ function App() {
   const [tokenState, setTokenState] = useState(() => !!gist.getToken());
   const { favoriteIds, favoriteItems, toggleFavorite, addFavorites, removeFavorites, loadFavorites } = useFavorites();
   const { understandingItems, setUnderstanding, setUnderstandings, loadUnderstandings } = useUnderstandings();
+  const { trashIds, trashItems, toggleTrash, loadTrash } = useTrash();
   const [selectedUnderstandingLevels, setSelectedUnderstandingLevels] = useState<Set<'low' | 'medium' | 'high'>>(new Set());
   const hasToken = tokenState;
 
@@ -107,11 +110,12 @@ function App() {
     return categories.flatMap(cat => cat.cards);
   }, [categories]);
 
-  // 토큰 설정 후 즐겨찾기와 이해도 다시 로드
+  // 토큰 설정 후 즐겨찾기와 이해도, 휴지통 다시 로드
   const handleTokenSet = () => {
     setTokenState(!!gist.getToken());
     loadFavorites();
     loadUnderstandings();
+    loadTrash();
   };
 
   // 토큰이 없을 때 즐겨찾기 필터 모드를 'all'로 강제 (단, 'normal'은 제외 - 토큰 없이도 동작 가능)
@@ -197,6 +201,8 @@ function App() {
             onOpenTokenSettings={() => setIsTokenSettingsOpen(true)}
             onOpenFavoritesManager={() => setIsFavoritesManagerOpen(true)}
             hasToken={hasToken}
+            trashFilterMode={trashFilterMode}
+            onTrashFilterModeChange={setTrashFilterMode}
           />
         </div>
 
@@ -240,6 +246,8 @@ function App() {
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
           hasToken={hasToken}
+          trashFilterMode={trashFilterMode}
+          onTrashFilterModeChange={setTrashFilterMode}
         />
 
         {/* 카드 뷰어 */}
@@ -257,6 +265,9 @@ function App() {
             hasToken={hasToken}
             onRequestToken={() => setIsTokenSettingsOpen(true)}
             onOpenFavoritesManager={() => setIsFavoritesManagerOpen(true)}
+            trashIds={hasToken ? trashIds : new Set()}
+            onToggleTrash={hasToken ? toggleTrash : undefined}
+            trashFilterMode={trashFilterMode}
           />
         </div>
       </div>
@@ -275,6 +286,7 @@ function App() {
         allCards={allCards}
         favoriteItems={favoriteItems}
         understandingItems={hasToken ? understandingItems : new Map()}
+        trashItems={hasToken ? trashItems : new Map()}
         categories={categories}
         onAddFavorites={hasToken ? addFavorites : undefined}
         onRemoveFavorites={hasToken ? removeFavorites : undefined}

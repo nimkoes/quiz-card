@@ -37,3 +37,10 @@ export interface UnderstandingItem {
   updatedAt: string; // ISO 8601 형식의 날짜 문자열
 }
 
+export interface TrashItem {
+  cardId: string;
+  addedAt: string; // ISO 8601 형식의 날짜 문자열
+}
+
+export type TrashFilterMode = 'all' | 'trash';
+
