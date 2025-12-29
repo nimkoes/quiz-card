@@ -464,7 +464,6 @@ export function CardComponent({
           {/* 이해도 설정 */}
           {onSetUnderstanding && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-pokemon-text font-bold">이해도:</span>
               <button
                 onClick={() => handleUnderstandingClick('low')}
                 disabled={!hasToken}
