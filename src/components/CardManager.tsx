@@ -3,6 +3,9 @@ import type { ReactNode } from 'react';
 import type { Card, FavoriteItem, UnderstandingItem, UnderstandingLevel, FavoriteFilterMode, DateFilterMode, TrashItem, TrashFilterMode } from '../types';
 import calendarIcon from '../assets/calendar.svg';
 import dexIcon from '../assets/dex.png';
+import understandingLowIcon from '../assets/하.webp';
+import understandingMediumIcon from '../assets/중.webp';
+import understandingHighIcon from '../assets/상.webp';
 
 interface CardManagerProps {
   isOpen: boolean;
@@ -750,13 +753,18 @@ export function CardManager({
                 }
                 setSelectedUnderstandingFilters(newSet);
               }}
-              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors ${
+              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors flex items-center justify-center ${
                 selectedUnderstandingFilters.has('low')
                   ? 'bg-red-600 text-white'
                   : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
               }`}
+              title="하"
             >
-              하
+              <img 
+                src={understandingLowIcon} 
+                alt="하" 
+                className="w-4 h-4 object-contain" 
+              />
             </button>
             <button
               onClick={() => {
@@ -768,13 +776,18 @@ export function CardManager({
                 }
                 setSelectedUnderstandingFilters(newSet);
               }}
-              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors ${
+              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors flex items-center justify-center ${
                 selectedUnderstandingFilters.has('medium')
                   ? 'bg-yellow-600 text-white'
                   : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
               }`}
+              title="중"
             >
-              중
+              <img 
+                src={understandingMediumIcon} 
+                alt="중" 
+                className="w-4 h-4 object-contain" 
+              />
             </button>
             <button
               onClick={() => {
@@ -786,13 +799,18 @@ export function CardManager({
                 }
                 setSelectedUnderstandingFilters(newSet);
               }}
-              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors ${
+              className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors flex items-center justify-center ${
                 selectedUnderstandingFilters.has('high')
                   ? 'bg-green-600 text-white'
                   : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
               }`}
+              title="상"
             >
-              상
+              <img 
+                src={understandingHighIcon} 
+                alt="상" 
+                className="w-4 h-4 object-contain" 
+              />
             </button>
             {/* 즐겨찾기 필터 버튼 */}
             <button
@@ -918,23 +936,38 @@ export function CardManager({
                   <button
                     onClick={() => onSetUnderstandings(Array.from(selectedIds), 'low')}
                     disabled={selectedIds.size === 0}
-                    className="px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.6rem] md:text-sm font-bold"
+                    className="px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.6rem] md:text-sm font-bold flex items-center justify-center"
+                    title="하"
                   >
-                    하
+                    <img 
+                      src={understandingLowIcon} 
+                      alt="하" 
+                      className="w-4 h-4 object-contain" 
+                    />
                   </button>
                   <button
                     onClick={() => onSetUnderstandings(Array.from(selectedIds), 'medium')}
                     disabled={selectedIds.size === 0}
-                    className="px-2 py-1 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.6rem] md:text-sm font-bold"
+                    className="px-2 py-1 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.6rem] md:text-sm font-bold flex items-center justify-center"
+                    title="중"
                   >
-                    중
+                    <img 
+                      src={understandingMediumIcon} 
+                      alt="중" 
+                      className="w-4 h-4 object-contain" 
+                    />
                   </button>
                   <button
                     onClick={() => onSetUnderstandings(Array.from(selectedIds), 'high')}
                     disabled={selectedIds.size === 0}
-                    className="px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.6rem] md:text-sm font-bold"
+                    className="px-2 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.6rem] md:text-sm font-bold flex items-center justify-center"
+                    title="상"
                   >
-                    상
+                    <img 
+                      src={understandingHighIcon} 
+                      alt="상" 
+                      className="w-4 h-4 object-contain" 
+                    />
                   </button>
                 </div>
               )}
@@ -1011,12 +1044,28 @@ export function CardManager({
                   >
                     {/* 이해도 */}
                     {hasToken && (
-                      <div className="min-w-0 flex items-center" style={{ width: '15px', flexShrink: 0 }}>
-                        <span className={`text-[0.6rem] md:text-sm font-medium ${isSelected ? 'text-yellow-200' : 'text-pokemon-yellow'}`}>
-                          {understandingItem?.level === 'low' ? '하' : 
-                           understandingItem?.level === 'medium' ? '중' : 
-                           understandingItem?.level === 'high' ? '상' : '-'}
-                        </span>
+                      <div className="min-w-0 flex items-center justify-center" style={{ width: '20px', flexShrink: 0 }}>
+                        {understandingItem?.level === 'low' ? (
+                          <img 
+                            src={understandingLowIcon} 
+                            alt="하" 
+                            className="w-4 h-4 object-contain" 
+                          />
+                        ) : understandingItem?.level === 'medium' ? (
+                          <img 
+                            src={understandingMediumIcon} 
+                            alt="중" 
+                            className="w-4 h-4 object-contain" 
+                          />
+                        ) : understandingItem?.level === 'high' ? (
+                          <img 
+                            src={understandingHighIcon} 
+                            alt="상" 
+                            className="w-4 h-4 object-contain" 
+                          />
+                        ) : (
+                          <span className={`text-[0.6rem] md:text-sm font-medium ${isSelected ? 'text-yellow-200' : 'text-pokemon-yellow'}`}>-</span>
+                        )}
                       </div>
                     )}
                     

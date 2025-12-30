@@ -1,5 +1,8 @@
 import type { Category, DateFilterMode, FavoriteFilterMode, TrashFilterMode } from '../types';
 import dexIcon from '../assets/dex.png';
+import understandingLowIcon from '../assets/하.webp';
+import understandingMediumIcon from '../assets/중.webp';
+import understandingHighIcon from '../assets/상.webp';
 
 interface MobileMenuProps {
   categories: Category[];
@@ -243,33 +246,48 @@ export function MobileMenu({
               <div className="flex gap-2">
                 <button
                     onClick={() => onToggleUnderstandingLevel('low')}
-                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
+                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors flex items-center justify-center ${
                         selectedUnderstandingLevels.has('low')
                             ? 'bg-red-600 text-white'
                             : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
                     }`}
+                    title="하"
                 >
-                  하
+                  <img 
+                    src={understandingLowIcon} 
+                    alt="하" 
+                    className="w-5 h-5 object-contain" 
+                  />
                 </button>
                 <button
                     onClick={() => onToggleUnderstandingLevel('medium')}
-                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
+                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors flex items-center justify-center ${
                         selectedUnderstandingLevels.has('medium')
                             ? 'bg-yellow-600 text-white'
                             : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
                     }`}
+                    title="중"
                 >
-                  중
+                  <img 
+                    src={understandingMediumIcon} 
+                    alt="중" 
+                    className="w-5 h-5 object-contain" 
+                  />
                 </button>
                 <button
                     onClick={() => onToggleUnderstandingLevel('high')}
-                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
+                    className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors flex items-center justify-center ${
                         selectedUnderstandingLevels.has('high')
                             ? 'bg-green-600 text-white'
                             : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
                     }`}
+                    title="상"
                 >
-                  상
+                  <img 
+                    src={understandingHighIcon} 
+                    alt="상" 
+                    className="w-5 h-5 object-contain" 
+                  />
                 </button>
               </div>
             </div>

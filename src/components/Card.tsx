@@ -2,6 +2,9 @@ import { type ReactNode } from 'react';
 import type { Card, UnderstandingLevel } from '../types';
 import trashInactiveIcon from '../assets/trash-inactive.svg';
 import trashActiveIcon from '../assets/trash-active.svg';
+import understandingLowIcon from '../assets/하.webp';
+import understandingMediumIcon from '../assets/중.webp';
+import understandingHighIcon from '../assets/상.webp';
 
 interface CardProps {
   card: Card;
@@ -473,7 +476,7 @@ export function CardComponent({
               <button
                 onClick={() => handleUnderstandingClick('low')}
                 disabled={!hasToken}
-                className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
+                className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors flex items-center justify-center ${
                   !hasToken
                     ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                     : understandingLevel === 'low'
@@ -482,12 +485,16 @@ export function CardComponent({
                 }`}
                 title={!hasToken ? 'GitHub 토큰을 설정해주세요' : '하'}
               >
-                하
+                <img 
+                  src={understandingLowIcon} 
+                  alt="하" 
+                  className="w-5 h-5 object-contain" 
+                />
               </button>
               <button
                 onClick={() => handleUnderstandingClick('medium')}
                 disabled={!hasToken}
-                className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
+                className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors flex items-center justify-center ${
                   !hasToken
                     ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                     : understandingLevel === 'medium'
@@ -496,12 +503,16 @@ export function CardComponent({
                 }`}
                 title={!hasToken ? 'GitHub 토큰을 설정해주세요' : '중'}
               >
-                중
+                <img 
+                  src={understandingMediumIcon} 
+                  alt="중" 
+                  className="w-5 h-5 object-contain" 
+                />
               </button>
               <button
                 onClick={() => handleUnderstandingClick('high')}
                 disabled={!hasToken}
-                className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
+                className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors flex items-center justify-center ${
                   !hasToken
                     ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                     : understandingLevel === 'high'
@@ -510,7 +521,11 @@ export function CardComponent({
                 }`}
                 title={!hasToken ? 'GitHub 토큰을 설정해주세요' : '상'}
               >
-                상
+                <img 
+                  src={understandingHighIcon} 
+                  alt="상" 
+                  className="w-5 h-5 object-contain" 
+                />
               </button>
             </div>
           )}

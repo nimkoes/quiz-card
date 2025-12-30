@@ -6,6 +6,9 @@ import pokeballIcon from '../assets/pokeball.svg';
 import trashInactiveIcon from '../assets/trash-inactive.svg';
 import trashActiveIcon from '../assets/trash-active.svg';
 import dexIcon from '../assets/dex.png';
+import understandingLowIcon from '../assets/하.webp';
+import understandingMediumIcon from '../assets/중.webp';
+import understandingHighIcon from '../assets/상.webp';
 
 interface CardViewerProps {
   cards: Card[];
@@ -275,7 +278,7 @@ export function CardViewer({
           )}
         </div>
 
-        {/* 가운데: 즐겨찾기 및 이해도 버튼 (모바일) */}
+        {/* 가운데: 즐겨찾기 및 이해도 버튼 (모바일만) */}
         {currentCard && (
           <div className="md:hidden flex items-center gap-2">
             <button
@@ -300,7 +303,7 @@ export function CardViewer({
                 <button
                   onClick={() => onSetUnderstanding(currentCard.id, understandingItems.get(currentCard.id)?.level === 'low' ? null : 'low')}
                   disabled={!hasToken}
-                  className={`px-2 py-1 rounded text-xs font-bold transition-colors ${
+                  className={`px-2 py-1 rounded text-xs font-bold transition-colors flex items-center justify-center ${
                     !hasToken
                       ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                       : understandingItems.get(currentCard.id)?.level === 'low'
@@ -309,12 +312,16 @@ export function CardViewer({
                   }`}
                   title={!hasToken ? 'GitHub 토큰을 설정해주세요' : '하'}
                 >
-                  하
+                  <img 
+                    src={understandingLowIcon} 
+                    alt="하" 
+                    className="w-4 h-4 object-contain" 
+                  />
                 </button>
                 <button
                   onClick={() => onSetUnderstanding(currentCard.id, understandingItems.get(currentCard.id)?.level === 'medium' ? null : 'medium')}
                   disabled={!hasToken}
-                  className={`px-2 py-1 rounded text-xs font-bold transition-colors ${
+                  className={`px-2 py-1 rounded text-xs font-bold transition-colors flex items-center justify-center ${
                     !hasToken
                       ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                       : understandingItems.get(currentCard.id)?.level === 'medium'
@@ -323,12 +330,16 @@ export function CardViewer({
                   }`}
                   title={!hasToken ? 'GitHub 토큰을 설정해주세요' : '중'}
                 >
-                  중
+                  <img 
+                    src={understandingMediumIcon} 
+                    alt="중" 
+                    className="w-4 h-4 object-contain" 
+                  />
                 </button>
                 <button
                   onClick={() => onSetUnderstanding(currentCard.id, understandingItems.get(currentCard.id)?.level === 'high' ? null : 'high')}
                   disabled={!hasToken}
-                  className={`px-2 py-1 rounded text-xs font-bold transition-colors ${
+                  className={`px-2 py-1 rounded text-xs font-bold transition-colors flex items-center justify-center ${
                     !hasToken
                       ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                       : understandingItems.get(currentCard.id)?.level === 'high'
@@ -337,7 +348,11 @@ export function CardViewer({
                   }`}
                   title={!hasToken ? 'GitHub 토큰을 설정해주세요' : '상'}
                 >
-                  상
+                  <img 
+                    src={understandingHighIcon} 
+                    alt="상" 
+                    className="w-4 h-4 object-contain" 
+                  />
                 </button>
                 {hasToken && onToggleTrash && (
                   <button
