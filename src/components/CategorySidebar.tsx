@@ -1,4 +1,5 @@
 import type { Category, DateFilterMode, FavoriteFilterMode, TrashFilterMode } from '../types';
+import dexIcon from '../assets/dex.png';
 
 interface CategorySidebarProps {
   categories: Category[];
@@ -100,9 +101,11 @@ export function CategorySidebar({
               className="w-full text-left px-4 py-2 rounded-lg transition-colors bg-pokemon-yellow text-pokemon-text hover:bg-yellow-400 border-4 border-pokemon-border font-bold"
             >
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
+                <img 
+                  src={dexIcon} 
+                  alt="전체 카드 관리" 
+                  className="w-4 h-4 object-contain" 
+                />
                 <span>전체 카드 관리</span>
               </div>
             </button>

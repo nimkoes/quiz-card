@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { Card, FavoriteItem, UnderstandingItem, UnderstandingLevel, FavoriteFilterMode, DateFilterMode, TrashItem, TrashFilterMode } from '../types';
 import calendarIcon from '../assets/calendar.svg';
+import dexIcon from '../assets/dex.png';
 
 interface CardManagerProps {
   isOpen: boolean;
@@ -667,9 +668,16 @@ export function CardManager({
       <div className="bg-pokemon-bg rounded-lg shadow-xl max-w-6xl w-full h-[calc(100dvh-5rem)] md:h-[90vh] flex flex-col border-2 border-pokemon-border">
         {/* 헤더 */}
         <div className="p-1 md:p-4 border-b-2 border-pokemon-border flex items-center justify-between flex-shrink-0">
-          <h2 className="text-[0.7rem] md:text-2xl font-bold text-pokemon-text">
-            카드 관리 ({filteredAndSortedCards.length}개)
-          </h2>
+          <div className="flex items-center gap-2">
+            <img 
+              src={dexIcon} 
+              alt="카드 관리" 
+              className="w-4 h-4 md:w-6 md:h-6 object-contain" 
+            />
+            <h2 className="text-[0.7rem] md:text-2xl font-bold text-pokemon-text">
+              카드 관리 ({filteredAndSortedCards.length}개)
+            </h2>
+          </div>
           <button
             onClick={onClose}
             className="p-2 text-pokemon-text hover:text-pokemon-red transition-colors"

@@ -5,6 +5,7 @@ import calendarIcon from '../assets/calendar.svg';
 import pokeballIcon from '../assets/pokeball.svg';
 import trashInactiveIcon from '../assets/trash-inactive.svg';
 import trashActiveIcon from '../assets/trash-active.svg';
+import dexIcon from '../assets/dex.png';
 
 interface CardViewerProps {
   cards: Card[];
@@ -360,9 +361,14 @@ export function CardViewer({
         {onOpenFavoritesManager && (
           <button
             onClick={onOpenFavoritesManager}
-            className="text-[1.2em] text-pokemon-blue hover:text-pokemon-red font-bold transition-colors"
+            className="p-1 rounded transition-colors hover:bg-pokemon-hover"
+            title="전체 카드 관리"
           >
-            🔍
+            <img 
+              src={dexIcon} 
+              alt="전체 카드 관리" 
+              className="w-6 h-6 object-contain" 
+            />
           </button>
         )}
       </div>
