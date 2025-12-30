@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { Card, FavoriteItem, UnderstandingItem, UnderstandingLevel, FavoriteFilterMode, DateFilterMode, TrashItem, TrashFilterMode } from '../types';
-import calendarIcon from '../assets/calendar.svg';
+import calendarIcon from '../assets/calendar.webp';
 import dexIcon from '../assets/dex.png';
 import understandingLowIcon from '../assets/하.webp';
 import understandingMediumIcon from '../assets/중.webp';

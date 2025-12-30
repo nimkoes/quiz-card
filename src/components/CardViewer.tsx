@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import type { Card, OrderMode, DateFilterMode, FavoriteFilterMode, UnderstandingItem, TrashFilterMode } from '../types';
 import { CardComponent } from './Card';
-import calendarIcon from '../assets/calendar.svg';
-import pokeballIcon from '../assets/pokeball.svg';
+import calendarIcon from '../assets/calendar.webp';
+import pokeballIcon from '../assets/pokeball.webp';
 import trashInactiveIcon from '../assets/trash-inactive.svg';
 import trashActiveIcon from '../assets/trash-active.svg';
 import dexIcon from '../assets/dex.png';

@@ -3,6 +3,7 @@ import dexIcon from '../assets/dex.png';
 import understandingLowIcon from '../assets/하.webp';
 import understandingMediumIcon from '../assets/중.webp';
 import understandingHighIcon from '../assets/상.webp';
+import titleIcon from '../assets/title.webp';
 
 interface CategorySidebarProps {
   categories: Category[];
@@ -49,7 +50,10 @@ export function CategorySidebar({
     <div className="w-64 bg-pokemon-bg border-r-4 border-pokemon-border h-full flex flex-col">
       {/* 헤더 */}
       <div className="p-4 border-b-4 border-pokemon-border">
-        <h1 className="text-xl font-bold text-pokemon-text">Quiz Card</h1>
+        <h1 className="text-xl font-bold text-pokemon-text flex items-center gap-2">
+          <img src={titleIcon} alt="Quiz Card" className="w-6 h-6 object-contain" />
+          Quiz Card
+        </h1>
       </div>
       
       {/* 카테고리 목록 */}

@@ -10,6 +10,7 @@ import { useUnderstandings } from './hooks/useUnderstandings';
 import { useTrash } from './hooks/useTrash';
 import * as gist from './utils/gist';
 import type { Card, OrderMode, DateFilterMode, FavoriteFilterMode, TrashFilterMode } from './types';
+import titleIcon from './assets/title.webp';
 
 function App() {
   const [categories, setCategories] = useState<{ name: string; cards: Card[] }[]>([]);
@@ -179,7 +180,10 @@ function App() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <h1 className="text-xl font-bold text-pokemon-text">Quiz Card</h1>
+        <h1 className="text-xl font-bold text-pokemon-text flex items-center gap-2">
+          <img src={titleIcon} alt="Quiz Card" className="w-6 h-6 object-contain" />
+          Quiz Card
+        </h1>
         <div className="w-10"></div>
       </div>
 

@@ -3,6 +3,7 @@ import dexIcon from '../assets/dex.png';
 import understandingLowIcon from '../assets/하.webp';
 import understandingMediumIcon from '../assets/중.webp';
 import understandingHighIcon from '../assets/상.webp';
+import titleIcon from '../assets/title.webp';
 
 interface MobileMenuProps {
   categories: Category[];
@@ -67,7 +68,10 @@ export function MobileMenu({
         <div className="h-full flex flex-col">
           {/* 헤더 */}
           <div className="p-2 border-b-2 border-pokemon-border flex items-center justify-between">
-            <h1 className="text-[0.9em] font-bold text-pokemon-text">Quiz Card</h1>
+            <h1 className="text-[0.9em] font-bold text-pokemon-text flex items-center gap-2">
+              <img src={titleIcon} alt="Quiz Card" className="w-5 h-5 object-contain" />
+              Quiz Card
+            </h1>
             <button
               onClick={onClose}
               className="p-0 text-pokemon-text hover:text-pokemon-red transition-colors"
