@@ -8,25 +8,17 @@ const __dirname = path.dirname(__filename);
 const contentDir = path.join(__dirname, '../public/content');
 
 /**
- * 디렉토리에서 .md 파일을 재귀적으로 찾습니다
+ * content 디렉토리에서 직접 .md 파일을 찾습니다 (단일 파일 구조)
  */
-function findMdFiles(dir, baseDir = dir) {
+function findMdFiles(dir) {
   const files = [];
   const entries = fs.readdirSync(dir, { withFileTypes: true });
 
   for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    const relativePath = path.relative(baseDir, fullPath);
-
-    if (entry.isDirectory()) {
-      // index.json이나 README.md는 제외
-      if (entry.name !== 'node_modules' && !entry.name.startsWith('.')) {
-        files.push(...findMdFiles(fullPath, baseDir));
-      }
-    } else if (entry.isFile() && entry.name.endsWith('.md')) {
-      // index.json이나 README.md는 제외
+    if (entry.isFile() && entry.name.endsWith('.md')) {
+      // README.md와 index.md는 제외
       if (entry.name !== 'README.md' && entry.name !== 'index.md') {
-        files.push(relativePath);
+        files.push(entry.name);
       }
     }
   }
@@ -35,42 +27,35 @@ function findMdFiles(dir, baseDir = dir) {
 }
 
 /**
- * 카테고리별로 파일을 그룹화합니다
+ * 파일명에서 카테고리명을 추출합니다 (확장자 제거)
  */
-function groupByCategory(files) {
-  const categories = {};
-
-  for (const file of files) {
-    const parts = file.split(path.sep);
-    if (parts.length >= 2) {
-      const category = parts[0];
-      const filename = parts[parts.length - 1];
-
-      if (!categories[category]) {
-        categories[category] = [];
-      }
-      categories[category].push(filename);
-    }
-  }
-
-  return categories;
+function getCategoryFromFilename(filename) {
+  return filename.replace(/\.md$/, '');
 }
 
 try {
   console.log('Scanning content directory...');
   const mdFiles = findMdFiles(contentDir);
-  const categories = groupByCategory(mdFiles);
+  
+  // 카테고리 목록 생성 (파일명에서 확장자 제거)
+  const categories = mdFiles.map(getCategoryFromFilename).sort();
+  
+  // 호환성을 위해 files 구조도 유지 (빈 배열)
+  const files = {};
+  categories.forEach(category => {
+    files[category] = [];
+  });
 
   const indexData = {
-    categories: Object.keys(categories).sort(),
-    files: categories,
+    categories,
+    files,
   };
 
   const indexPath = path.join(contentDir, 'index.json');
   fs.writeFileSync(indexPath, JSON.stringify(indexData, null, 2), 'utf-8');
 
-  console.log(`Found ${mdFiles.length} markdown files in ${Object.keys(categories).length} categories`);
-  console.log(`Categories: ${indexData.categories.join(', ')}`);
+  console.log(`Found ${mdFiles.length} markdown files in ${categories.length} categories`);
+  console.log(`Categories: ${categories.join(', ')}`);
   console.log(`Index file generated at: ${indexPath}`);
 } catch (error) {
   console.error('Error generating content index:', error);

@@ -1,12 +1,12 @@
 export interface Card {
-  id: string; // 고유 ID: category-filename-index
+  id: string; // 고유 ID: category-month-day-index 또는 category-index
   category: string;
-  filename: string;
+  filename: string; // 카테고리명 또는 빈 문자열
   content: string; // 카드 본문 (<<<<< 와 >>>>> 사이의 내용, ### 제외)
   explanation?: string; // 추가 설명 (### 이후의 내용)
-  index: number; // 파일 내 카드 인덱스
-  month?: number; // 파일명에서 추출한 월 정보
-  day?: number; // 파일명에서 추출한 일 정보
+  index: number; // 날짜별 카드 인덱스
+  month?: number; // 날짜 구분자에서 추출한 월 정보
+  day?: number; // 날짜 구분자에서 추출한 일 정보
 }
 
 export interface Category {

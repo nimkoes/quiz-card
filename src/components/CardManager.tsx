@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { Card, FavoriteItem, UnderstandingItem, UnderstandingLevel, FavoriteFilterMode, DateFilterMode, TrashItem, TrashFilterMode } from '../types';
-import { extractFileIndex } from '../utils/parser';
 import calendarIcon from '../assets/calendar.svg';
 
 interface CardManagerProps {
@@ -84,7 +83,73 @@ export function CardManager({
       cards = cards.filter(({ card }) => selectedCategoryFilters.has(card.category));
     }
 
+    // 일주일 필터 (각 카테고리별로 최근 7개의 서로 다른 날짜) - 이해도 필터보다 먼저 적용
+    if (dateFilterMode === 'week') {
+      // 카테고리별로 그룹화
+      const cardsByCategory = new Map<string, typeof cards>();
+      cards.forEach(item => {
+        if (!cardsByCategory.has(item.card.category)) {
+          cardsByCategory.set(item.card.category, []);
+        }
+        cardsByCategory.get(item.card.category)!.push(item);
+      });
+      
+      // 각 카테고리별로 최근 7개 날짜 선택
+      const filteredCards: typeof cards = [];
+      cardsByCategory.forEach((categoryCards) => {
+        // 날짜가 있는 카드들만 필터링
+        const cardsWithDate = categoryCards.filter(item => 
+          item.card.month !== undefined && 
+          item.card.day !== undefined && 
+          typeof item.card.month === 'number' && 
+          typeof item.card.day === 'number'
+        );
+        
+        if (cardsWithDate.length > 0) {
+          // 고유한 날짜 추출 (month-day 조합)
+          const uniqueDates = new Set<string>();
+          cardsWithDate.forEach(item => {
+            if (item.card.month !== undefined && item.card.day !== undefined) {
+              uniqueDates.add(`${item.card.month}-${item.card.day}`);
+            }
+          });
+          
+          // 날짜를 정렬하여 최근 7개 선택
+          // 날짜를 month-day 형식으로 정렬 (월이 크고, 같은 월이면 일이 큰 순서)
+          const sortedDates = Array.from(uniqueDates)
+            .map(dateStr => {
+              const [month, day] = dateStr.split('-').map(Number);
+              return { month, day, key: dateStr };
+            })
+            .filter(d => !isNaN(d.month) && !isNaN(d.day)) // 유효한 날짜만
+            .sort((a, b) => {
+              // 먼저 월 비교, 같으면 일 비교
+              if (a.month !== b.month) {
+                return b.month - a.month; // 내림차순 (큰 월이 앞)
+              }
+              return b.day - a.day; // 내림차순 (큰 일이 앞)
+            })
+            .slice(0, 7) // 최근 7개 날짜
+            .map(d => d.key);
+          
+          // 선택된 날짜의 카드만 필터링
+          const categoryFilteredCards = cardsWithDate.filter(item => {
+            if (item.card.month !== undefined && item.card.day !== undefined) {
+              const dateKey = `${item.card.month}-${item.card.day}`;
+              return sortedDates.includes(dateKey);
+            }
+            return false;
+          });
+          
+          filteredCards.push(...categoryFilteredCards);
+        }
+      });
+      
+      cards = filteredCards;
+    }
+
     // 이해도 필터 (OR 조건: 선택된 이해도 중 하나라도 일치하면 통과)
+    // 일주일 필터 이후에 적용하여, 일주일 필터로 필터링된 결과에서 이해도를 필터링
     if (selectedUnderstandingFilters.size > 0) {
       cards = cards.filter(({ understandingItem }) => {
         const level = understandingItem?.level;
@@ -100,48 +165,6 @@ export function CardManager({
       cards = cards.filter(({ favoriteItem }) => favoriteItem === undefined);
     }
     // favoriteFilterMode === 'all'인 경우 필터링하지 않음
-
-    // 일주일 필터 (각 카테고리별 최근 7개 파일)
-    if (dateFilterMode === 'week') {
-      // 카테고리별로 그룹화
-      const cardsByCategory = new Map<string, typeof cards>();
-      cards.forEach(item => {
-        if (!cardsByCategory.has(item.card.category)) {
-          cardsByCategory.set(item.card.category, []);
-        }
-        cardsByCategory.get(item.card.category)!.push(item);
-      });
-      
-      // 각 카테고리별로 파일명으로 그룹화하고 최근 7개 파일 선택
-      const filteredCards: typeof cards = [];
-      cardsByCategory.forEach((categoryCards) => {
-        // 파일명으로 그룹화
-        const cardsByFile = new Map<string, typeof cards>();
-        categoryCards.forEach(item => {
-          if (!cardsByFile.has(item.card.filename)) {
-            cardsByFile.set(item.card.filename, []);
-          }
-          cardsByFile.get(item.card.filename)!.push(item);
-        });
-        
-        // 파일명에서 index 추출하여 정렬
-        const files = Array.from(cardsByFile.entries())
-          .map(([filename, fileCards]) => ({
-            filename,
-            index: extractFileIndex(filename),
-            cards: fileCards,
-          }))
-          .sort((a, b) => b.index - a.index) // 내림차순 정렬
-          .slice(0, 7); // 상위 7개 파일
-        
-        // 선택된 파일의 카드들 추가
-        files.forEach(file => {
-          filteredCards.push(...file.cards);
-        });
-      });
-      
-      cards = filteredCards;
-    }
 
     // 휴지통 필터
     if (trashFilterMode === 'trash') {

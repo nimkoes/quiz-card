@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { loadAllCards, extractFileIndex } from './utils/parser';
+import { loadAllCards } from './utils/parser';
 import { CategorySidebar } from './components/CategorySidebar';
 import { MobileMenu } from './components/MobileMenu';
 import { CardViewer } from './components/CardViewer';
@@ -60,7 +60,7 @@ function App() {
         .flatMap(cat => cat.cards);
     }
     
-    // 일주일 필터 (각 카테고리별 최근 7개 파일)
+    // 일주일 필터 (각 카테고리별로 최근 7개의 서로 다른 날짜)
     if (dateFilterMode === 'week') {
       // 카테고리별로 그룹화
       const cardsByCategory = new Map<string, Card[]>();
@@ -71,32 +71,55 @@ function App() {
         cardsByCategory.get(card.category)!.push(card);
       });
       
-      // 각 카테고리별로 파일명으로 그룹화하고 최근 7개 파일 선택
+      // 각 카테고리별로 최근 7개 날짜 선택
       const filteredCards: Card[] = [];
       cardsByCategory.forEach((categoryCards) => {
-        // 파일명으로 그룹화
-        const cardsByFile = new Map<string, Card[]>();
-        categoryCards.forEach(card => {
-          if (!cardsByFile.has(card.filename)) {
-            cardsByFile.set(card.filename, []);
-          }
-          cardsByFile.get(card.filename)!.push(card);
-        });
+        // 날짜가 있는 카드들만 필터링
+        const cardsWithDate = categoryCards.filter(card => 
+          card.month !== undefined && 
+          card.day !== undefined && 
+          typeof card.month === 'number' && 
+          typeof card.day === 'number'
+        );
         
-        // 파일명에서 index 추출하여 정렬
-        const files = Array.from(cardsByFile.entries())
-          .map(([filename, fileCards]) => ({
-            filename,
-            index: extractFileIndex(filename),
-            cards: fileCards,
-          }))
-          .sort((a, b) => b.index - a.index) // 내림차순 정렬
-          .slice(0, 7); // 상위 7개 파일
-        
-        // 선택된 파일의 카드들 추가
-        files.forEach(file => {
-          filteredCards.push(...file.cards);
-        });
+        if (cardsWithDate.length > 0) {
+          // 고유한 날짜 추출 (month-day 조합)
+          const uniqueDates = new Set<string>();
+          cardsWithDate.forEach(card => {
+            if (card.month !== undefined && card.day !== undefined) {
+              uniqueDates.add(`${card.month}-${card.day}`);
+            }
+          });
+          
+          // 날짜를 정렬하여 최근 7개 선택
+          // 날짜를 month-day 형식으로 정렬 (월이 크고, 같은 월이면 일이 큰 순서)
+          const sortedDates = Array.from(uniqueDates)
+            .map(dateStr => {
+              const [month, day] = dateStr.split('-').map(Number);
+              return { month, day, key: dateStr };
+            })
+            .filter(d => !isNaN(d.month) && !isNaN(d.day)) // 유효한 날짜만
+            .sort((a, b) => {
+              // 먼저 월 비교, 같으면 일 비교
+              if (a.month !== b.month) {
+                return b.month - a.month; // 내림차순 (큰 월이 앞)
+              }
+              return b.day - a.day; // 내림차순 (큰 일이 앞)
+            })
+            .slice(0, 7) // 최근 7개 날짜
+            .map(d => d.key);
+          
+          // 선택된 날짜의 카드만 필터링
+          const categoryFilteredCards = cardsWithDate.filter(card => {
+            if (card.month !== undefined && card.day !== undefined) {
+              const dateKey = `${card.month}-${card.day}`;
+              return sortedDates.includes(dateKey);
+            }
+            return false;
+          });
+          
+          filteredCards.push(...categoryFilteredCards);
+        }
       });
       
       cards = filteredCards;

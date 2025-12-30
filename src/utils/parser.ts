@@ -30,25 +30,52 @@ export function extractDateFromFilename(filename: string): { month: number; day:
 }
 
 /**
+ * 날짜 구분자에서 날짜 정보를 추출합니다.
+ * ===============11/21 형식: month와 day 추출
+ * 날짜 정보가 없으면 null 반환
+ */
+function extractDateFromSeparator(line: string): { month: number; day: number } | null {
+  // 정확히 15개의 = 뒤에 날짜가 오는 패턴
+  // 앞뒤 공백은 무시 (trimmedLine으로 이미 처리됨)
+  const match = line.match(/^={15}(\d+)\/(\d+)$/);
+  if (match) {
+    const month = parseInt(match[1], 10);
+    const day = parseInt(match[2], 10);
+    // 유효한 날짜 범위 확인 (1-12월, 1-31일)
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return { month, day };
+    }
+  }
+  return null;
+}
+
+/**
  * MD 파일 내용을 파싱하여 카드 배열로 변환
  */
 export function parseMarkdown(content: string, category: string, filename: string): Card[] {
   const cards: Card[] = [];
   const lines = content.split('\n');
   
-  // 파일명에서 날짜 정보 추출
-  const dateInfo = extractDateFromFilename(filename);
-  
   let currentCard: { content: string[]; explanation?: string } | null = null;
-  let cardIndex = 0;
+  let currentDate: { month: number; day: number } | null = null;
+  let dateCardIndex = new Map<string, number>(); // 날짜별 카드 인덱스 관리
   let inCard = false;
   let inExplanation = false;
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    const trimmedLine = line.trim();
+    
+    // 날짜 구분자 처리
+    const dateInfo = extractDateFromSeparator(trimmedLine);
+    if (dateInfo) {
+      currentDate = dateInfo;
+      // 날짜별 인덱스 초기화는 필요 없음 (Map이 자동으로 관리)
+      continue;
+    }
     
     // 카드 시작
-    if (line.trim() === '<<<<<') {
+    if (trimmedLine === '<<<<<') {
       inCard = true;
       currentCard = { content: [] };
       inExplanation = false;
@@ -56,23 +83,35 @@ export function parseMarkdown(content: string, category: string, filename: strin
     }
     
     // 카드 종료
-    if (line.trim() === '>>>>>') {
+    if (trimmedLine === '>>>>>') {
       if (currentCard && inCard) {
         const content = currentCard.content.join('\n').trim();
         const explanation = currentCard.explanation?.trim();
         
         if (content) {
+          // 날짜별 카드 인덱스 가져오기 또는 초기화
+          const dateKey = currentDate ? `${currentDate.month}-${currentDate.day}` : 'no-date';
+          const cardIndex = dateCardIndex.get(dateKey) || 0;
+          dateCardIndex.set(dateKey, cardIndex + 1);
+          
+          // 카드 ID 생성
+          let cardId: string;
+          if (currentDate) {
+            cardId = `${category}-${currentDate.month}-${currentDate.day}-${cardIndex}`;
+          } else {
+            cardId = `${category}-${cardIndex}`;
+          }
+          
           cards.push({
-            id: `${category}-${filename}-${cardIndex}`,
+            id: cardId,
             category,
             filename,
             content,
             explanation: explanation || undefined,
             index: cardIndex,
-            month: dateInfo?.month,
-            day: dateInfo?.day,
+            month: currentDate?.month,
+            day: currentDate?.day,
           });
-          cardIndex++;
         }
       }
       inCard = false;
@@ -84,7 +123,7 @@ export function parseMarkdown(content: string, category: string, filename: strin
     // 카드 내부 처리
     if (inCard && currentCard) {
       // 추가 설명 시작
-      if (line.trim() === '###') {
+      if (trimmedLine === '###') {
         inExplanation = true;
         if (!currentCard.explanation) {
           currentCard.explanation = '';
@@ -146,27 +185,26 @@ export async function loadAllCards(): Promise<ParsedData> {
 
 /**
  * 특정 카테고리의 MD 파일을 읽어서 파싱
+ * 단일 파일만 로드 (category.md 형식)
  */
 export async function loadCategoryCards(category: string, filenames: string[]): Promise<Card[]> {
-  const allCards: Card[] = [];
   const baseUrl = import.meta.env.BASE_URL;
   
-  for (const filename of filenames) {
-    try {
-      const response = await fetch(`${baseUrl}content/${category}/${filename}`);
-      if (!response.ok) {
-        console.warn(`Failed to load ${category}/${filename}`);
-        continue;
-      }
-      const content = await response.text();
-      const cards = parseMarkdown(content, category, filename);
-      allCards.push(...cards);
-    } catch (error) {
-      console.error(`Error loading ${category}/${filename}:`, error);
+  // 단일 파일만 로드 (category.md)
+  const filename = `${category}.md`;
+  try {
+    const response = await fetch(`${baseUrl}content/${filename}`);
+    if (!response.ok) {
+      console.warn(`Failed to load ${filename}`);
+      return [];
     }
+    const content = await response.text();
+    const cards = parseMarkdown(content, category, filename);
+    return cards;
+  } catch (error) {
+    console.error(`Error loading ${filename}:`, error);
+    return [];
   }
-  
-  return allCards;
 }
 
 /**
@@ -190,18 +228,10 @@ export async function getCategories(): Promise<string[]> {
 /**
  * 카테고리별 파일 목록을 가져옵니다.
  * 빌드 시점에 생성된 index.json 파일에서 읽어옵니다.
+ * 단일 파일 구조에서는 더 이상 사용되지 않지만, 호환성을 위해 유지
  */
 export async function getCategoryFiles(category: string): Promise<string[]> {
-  try {
-    const baseUrl = import.meta.env.BASE_URL;
-    const response = await fetch(`${baseUrl}content/index.json`);
-    if (response.ok) {
-      const data = await response.json();
-      return data.files?.[category] || [];
-    }
-  } catch {
-    console.warn(`Failed to load files for category ${category}`);
-  }
+  // 단일 파일 구조에서는 빈 배열 반환 (loadCategoryCards에서 직접 파일명 사용)
   return [];
 }
 
