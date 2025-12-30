@@ -187,7 +187,7 @@ export async function loadAllCards(): Promise<ParsedData> {
  * 특정 카테고리의 MD 파일을 읽어서 파싱
  * 단일 파일만 로드 (category.md 형식)
  */
-export async function loadCategoryCards(category: string, filenames: string[]): Promise<Card[]> {
+export async function loadCategoryCards(category: string, _filenames: string[]): Promise<Card[]> {
   const baseUrl = import.meta.env.BASE_URL;
   
   // 단일 파일만 로드 (category.md)
@@ -230,7 +230,7 @@ export async function getCategories(): Promise<string[]> {
  * 빌드 시점에 생성된 index.json 파일에서 읽어옵니다.
  * 단일 파일 구조에서는 더 이상 사용되지 않지만, 호환성을 위해 유지
  */
-export async function getCategoryFiles(category: string): Promise<string[]> {
+export async function getCategoryFiles(_category: string): Promise<string[]> {
   // 단일 파일 구조에서는 빈 배열 반환 (loadCategoryCards에서 직접 파일명 사용)
   return [];
 }
