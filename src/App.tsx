@@ -11,6 +11,7 @@ import { useTrash } from './hooks/useTrash';
 import * as gist from './utils/gist';
 import type { Card, OrderMode, DateFilterMode, FavoriteFilterMode, TrashFilterMode } from './types';
 import titleIcon from './assets/title.webp';
+import dexIcon from './assets/dex.png';
 
 function App() {
   const [categories, setCategories] = useState<{ name: string; cards: Card[] }[]>([]);
@@ -172,31 +173,50 @@ function App() {
   return (
     <div className="h-[100dvh] flex flex-col bg-pokemon-bg">
       {/* 모바일 헤더 */}
-      <div className="md:hidden bg-pokemon-bg border-b-4 border-pokemon-border flex items-center justify-between">
-        <button
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="p-2 text-pokemon-text hover:text-pokemon-red transition-colors"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <h1 className="text-xl font-bold text-pokemon-text flex items-center gap-2">
-          <img src={titleIcon} alt="Quiz Card" className="w-6 h-6 object-contain" />
-          Quiz Card
-        </h1>
-        {orderMode === 'random' && (
+      <div className="md:hidden bg-pokemon-bg border-b-4 border-pokemon-border flex items-center relative">
+        {/* 왼쪽: 햄버거 메뉴 */}
+        <div className="flex-shrink-0">
           <button
-            onClick={() => cardViewerRef.current?.reshuffle()}
-            className="p-2 text-pokemon-blue hover:text-pokemon-red transition-colors"
-            title="순서 다시 섞기"
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 text-pokemon-text hover:text-pokemon-red transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-        )}
-        {orderMode !== 'random' && <div className="w-10"></div>}
+        </div>
+        {/* 가운데: Quiz Card 타이틀 (고정) */}
+        <div className="flex-1 flex justify-center">
+          <h1 className="text-xl font-bold text-pokemon-text flex items-center gap-2">
+            <img src={titleIcon} alt="Quiz Card" className="w-6 h-6 object-contain" />
+            Quiz Card
+          </h1>
+        </div>
+        {/* 오른쪽: 랜덤 섞기 버튼 및 전체 카드 관리 버튼 */}
+        <div className="flex-shrink-0 flex items-center gap-2">
+          {orderMode === 'random' && (
+            <button
+              onClick={() => cardViewerRef.current?.reshuffle()}
+              className="p-2 text-pokemon-blue hover:text-pokemon-red transition-colors"
+              title="순서 다시 섞기"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          )}
+          <button
+            onClick={() => setIsFavoritesManagerOpen(true)}
+            className="p-1 rounded transition-colors hover:bg-pokemon-hover"
+            title="전체 카드 관리"
+          >
+            <img 
+              src={dexIcon} 
+              alt="전체 카드 관리" 
+              className="w-6 h-6 object-contain" 
+            />
+          </button>
+        </div>
       </div>
 
       {/* 메인 레이아웃 */}

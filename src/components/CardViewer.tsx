@@ -381,14 +381,14 @@ export const CardViewer = forwardRef<CardViewerHandle, CardViewerProps>(({
               <img 
                 src={trashIds.has(currentCard.id) ? trashActiveIcon : trashInactiveIcon} 
                 alt="trash" 
-                className="w-[1.8rem] h-[1.8rem]" 
+                className="w-[2.34rem] h-[2.34rem]" 
               />
             </button>
           )}
           {onOpenFavoritesManager && (
             <button
               onClick={onOpenFavoritesManager}
-              className="p-1 rounded transition-colors hover:bg-pokemon-hover"
+              className="hidden md:block p-1 rounded transition-colors hover:bg-pokemon-hover"
               title="전체 카드 관리"
             >
               <img 

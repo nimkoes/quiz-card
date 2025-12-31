@@ -558,7 +558,7 @@ export function CardComponent({
               <img 
                 src={isTrash ? trashActiveIcon : trashInactiveIcon} 
                 alt="trash" 
-                className="w-[1.8rem] h-[1.8rem]" 
+                className="w-[2.34rem] h-[2.34rem]" 
               />
             </button>
           )}
