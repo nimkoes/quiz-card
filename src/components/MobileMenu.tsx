@@ -5,6 +5,7 @@ import understandingMediumIcon from '../assets/중.webp';
 import understandingHighIcon from '../assets/상.webp';
 import titleIcon from '../assets/title.webp';
 import trashInactiveIcon from '../assets/trash-inactive.png';
+import settingsIcon from '../assets/settings.webp';
 
 interface MobileMenuProps {
   categories: Category[];
@@ -155,9 +156,13 @@ export function MobileMenu({
           
           {/* 설정 */}
           <div className="p-3 border-t-2 border-pokemon-border space-y-2">
-            <label className="block text-[2rem] font-light text-pokemon-text mb-2">
-              ⚙
-            </label>
+            <div className="mb-2 flex items-center justify-start">
+              <img 
+                src={settingsIcon} 
+                alt="설정" 
+                className="w-12 h-12 object-contain" 
+              />
+            </div>
             {/* 순서 모드 */}
             <div>
               <div className="flex gap-2">
