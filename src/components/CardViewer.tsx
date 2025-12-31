@@ -326,7 +326,7 @@ export const CardViewer = forwardRef<CardViewerHandle, CardViewerProps>(({
                   <img 
                     src={understandingLowIcon} 
                     alt="하" 
-                    className="w-4 h-4 object-contain" 
+                    className="w-[1.2rem] h-[1.2rem] object-contain" 
                   />
                 </button>
                 <button
@@ -344,7 +344,7 @@ export const CardViewer = forwardRef<CardViewerHandle, CardViewerProps>(({
                   <img 
                     src={understandingMediumIcon} 
                     alt="중" 
-                    className="w-4 h-4 object-contain" 
+                    className="w-[1.2rem] h-[1.2rem] object-contain" 
                   />
                 </button>
                 <button
@@ -362,7 +362,7 @@ export const CardViewer = forwardRef<CardViewerHandle, CardViewerProps>(({
                   <img 
                     src={understandingHighIcon} 
                     alt="상" 
-                    className="w-4 h-4 object-contain" 
+                    className="w-[1.2rem] h-[1.2rem] object-contain" 
                   />
                 </button>
               </div>

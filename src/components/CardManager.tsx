@@ -933,13 +933,6 @@ export function CardManager({
                 <div className="flex items-center gap-2">
                   <span className="text-[0.65rem] md:text-sm text-pokemon-text font-bold">이해도</span>
                   <button
-                    onClick={() => onSetUnderstandings(Array.from(selectedIds), null)}
-                    disabled={selectedIds.size === 0}
-                    className="px-2 py-1 bg-gray-300 text-white rounded-lg hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.6rem] md:text-sm font-bold"
-                  >
-                    🗑️
-                  </button>
-                  <button
                     onClick={() => onSetUnderstandings(Array.from(selectedIds), 'low')}
                     disabled={selectedIds.size === 0}
                     className="px-2 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-[0.6rem] md:text-sm font-bold flex items-center justify-center"
@@ -948,7 +941,7 @@ export function CardManager({
                     <img 
                       src={understandingLowIcon} 
                       alt="하" 
-                      className="w-4 h-4 object-contain" 
+                      className="w-[1.2rem] h-[1.2rem] object-contain" 
                     />
                   </button>
                   <button
@@ -960,7 +953,7 @@ export function CardManager({
                     <img 
                       src={understandingMediumIcon} 
                       alt="중" 
-                      className="w-4 h-4 object-contain" 
+                      className="w-[1.2rem] h-[1.2rem] object-contain" 
                     />
                   </button>
                   <button
@@ -972,7 +965,7 @@ export function CardManager({
                     <img 
                       src={understandingHighIcon} 
                       alt="상" 
-                      className="w-4 h-4 object-contain" 
+                      className="w-[1.2rem] h-[1.2rem] object-contain" 
                     />
                   </button>
                 </div>
@@ -1055,19 +1048,19 @@ export function CardManager({
                           <img 
                             src={understandingLowIcon} 
                             alt="하" 
-                            className="w-4 h-4 object-contain" 
+                            className="w-[1.2rem] h-[1.2rem] object-contain" 
                           />
                         ) : understandingItem?.level === 'medium' ? (
                           <img 
                             src={understandingMediumIcon} 
                             alt="중" 
-                            className="w-4 h-4 object-contain" 
+                            className="w-[1.2rem] h-[1.2rem] object-contain" 
                           />
                         ) : understandingItem?.level === 'high' ? (
                           <img 
                             src={understandingHighIcon} 
                             alt="상" 
-                            className="w-4 h-4 object-contain" 
+                            className="w-[1.2rem] h-[1.2rem] object-contain" 
                           />
                         ) : (
                           <span className={`text-[0.6rem] md:text-sm font-medium ${isSelected ? 'text-yellow-200' : 'text-pokemon-yellow'}`}>-</span>

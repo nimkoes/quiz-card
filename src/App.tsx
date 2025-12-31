@@ -213,7 +213,7 @@ function App() {
             <img 
               src={dexIcon} 
               alt="전체 카드 관리" 
-              className="w-6 h-6 object-contain" 
+              className="w-[1.95rem] h-[1.95rem] object-contain" 
             />
           </button>
         </div>

@@ -485,12 +485,12 @@ export function CardComponent({
                 }`}
                 title={!hasToken ? 'GitHub 토큰을 설정해주세요' : '하'}
               >
-                <img 
-                  src={understandingLowIcon} 
-                  alt="하" 
-                  className="w-5 h-5 object-contain" 
-                />
-              </button>
+                  <img 
+                    src={understandingLowIcon} 
+                    alt="하" 
+                    className="w-[1.5rem] h-[1.5rem] object-contain" 
+                  />
+                </button>
               <button
                 onClick={() => handleUnderstandingClick('medium')}
                 disabled={!hasToken}
@@ -506,7 +506,7 @@ export function CardComponent({
                 <img 
                   src={understandingMediumIcon} 
                   alt="중" 
-                  className="w-5 h-5 object-contain" 
+                  className="w-[1.5rem] h-[1.5rem] object-contain" 
                 />
               </button>
               <button
@@ -524,7 +524,7 @@ export function CardComponent({
                 <img 
                   src={understandingHighIcon} 
                   alt="상" 
-                  className="w-5 h-5 object-contain" 
+                  className="w-[1.5rem] h-[1.5rem] object-contain"
                 />
               </button>
             </div>
