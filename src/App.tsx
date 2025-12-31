@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { loadAllCards } from './utils/parser';
 import { CategorySidebar } from './components/CategorySidebar';
 import { MobileMenu } from './components/MobileMenu';
-import { CardViewer } from './components/CardViewer';
+import { CardViewer, type CardViewerHandle } from './components/CardViewer';
 import { TokenSettings } from './components/TokenSettings';
 import { CardManager } from './components/CardManager';
 import { useFavorites } from './hooks/useFavorites';
@@ -29,6 +29,7 @@ function App() {
   const { trashIds, trashItems, toggleTrash, loadTrash } = useTrash();
   const [selectedUnderstandingLevels, setSelectedUnderstandingLevels] = useState<Set<'low' | 'medium' | 'high'>>(new Set());
   const hasToken = tokenState;
+  const cardViewerRef = useRef<CardViewerHandle>(null);
 
   // 카드 데이터 로드
   useEffect(() => {
@@ -184,7 +185,18 @@ function App() {
           <img src={titleIcon} alt="Quiz Card" className="w-6 h-6 object-contain" />
           Quiz Card
         </h1>
-        <div className="w-10"></div>
+        {orderMode === 'random' && (
+          <button
+            onClick={() => cardViewerRef.current?.reshuffle()}
+            className="p-2 text-pokemon-blue hover:text-pokemon-red transition-colors"
+            title="순서 다시 섞기"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+        )}
+        {orderMode !== 'random' && <div className="w-10"></div>}
       </div>
 
       {/* 메인 레이아웃 */}
@@ -280,6 +292,7 @@ function App() {
         {/* 카드 뷰어 */}
         <div className="flex-1 overflow-hidden">
           <CardViewer
+            ref={cardViewerRef}
             cards={displayCards}
             orderMode={orderMode}
             dateFilterMode={dateFilterMode}

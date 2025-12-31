@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { Card, FavoriteItem, UnderstandingItem, UnderstandingLevel, FavoriteFilterMode, DateFilterMode, TrashItem, TrashFilterMode } from '../types';
 import calendarIcon from '../assets/calendar.webp';
 import dexIcon from '../assets/dex.png';
+import trashInactiveIcon from '../assets/trash-inactive.png';
 import understandingLowIcon from '../assets/하.webp';
 import understandingMediumIcon from '../assets/중.webp';
 import understandingHighIcon from '../assets/상.webp';
@@ -846,13 +847,18 @@ export function CardManager({
             {hasToken && (
               <button
                 onClick={() => setTrashFilterMode(trashFilterMode === 'trash' ? 'all' : 'trash')}
-                className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors ${
+                className={`px-2 py-1 border-2 border-pokemon-border rounded-lg text-[0.6em] transition-colors flex items-center justify-center ${
                   trashFilterMode === 'trash'
                     ? 'bg-pokemon-blue text-white'
                     : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover'
                 }`}
+                title="휴지통"
               >
-                🗑
+                <img 
+                  src={trashInactiveIcon} 
+                  alt="휴지통" 
+                  className="w-4 h-4 object-contain" 
+                />
               </button>
             )}
           </div>

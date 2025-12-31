@@ -1,14 +1,18 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useImperativeHandle, forwardRef } from 'react';
 import type { Card, OrderMode, DateFilterMode, FavoriteFilterMode, UnderstandingItem, TrashFilterMode } from '../types';
 import { CardComponent } from './Card';
 import calendarIcon from '../assets/calendar.webp';
 import pokeballIcon from '../assets/pokeball.webp';
-import trashInactiveIcon from '../assets/trash-inactive.svg';
-import trashActiveIcon from '../assets/trash-active.svg';
+import trashInactiveIcon from '../assets/trash-inactive.png';
+import trashActiveIcon from '../assets/trash-active.png';
 import dexIcon from '../assets/dex.png';
 import understandingLowIcon from '../assets/하.webp';
 import understandingMediumIcon from '../assets/중.webp';
 import understandingHighIcon from '../assets/상.webp';
+
+export interface CardViewerHandle {
+  reshuffle: () => void;
+}
 
 interface CardViewerProps {
   cards: Card[];
@@ -28,7 +32,7 @@ interface CardViewerProps {
   trashFilterMode?: TrashFilterMode;
 }
 
-export function CardViewer({
+export const CardViewer = forwardRef<CardViewerHandle, CardViewerProps>(({
   cards,
   orderMode,
   dateFilterMode,
@@ -44,7 +48,7 @@ export function CardViewer({
   trashIds = new Set(),
   onToggleTrash,
   trashFilterMode = 'all',
-}: CardViewerProps) {
+}, ref) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showExplanation, setShowExplanation] = useState(false);
   const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);
@@ -129,6 +133,11 @@ export function CardViewer({
     setCurrentIndex(0);
     setShowExplanation(false);
   };
+
+  // ref를 통해 외부에서 reshuffle 함수 호출 가능하도록
+  useImperativeHandle(ref, () => ({
+    reshuffle: handleReshuffle,
+  }));
 
   const currentDisplayIndex = displayIndices[currentIndex];
   const currentCard = filteredCards[currentDisplayIndex];
@@ -268,7 +277,7 @@ export function CardViewer({
           {orderMode === 'random' && (
             <button
               onClick={handleReshuffle}
-              className="p-1 text-pokemon-blue hover:text-pokemon-red transition-colors"
+              className="hidden md:block p-1 text-pokemon-blue hover:text-pokemon-red transition-colors"
               title="순서 다시 섞기"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,11 +289,12 @@ export function CardViewer({
 
         {/* 가운데: 즐겨찾기 및 이해도 버튼 (모바일만) */}
         {currentCard && (
-          <div className="md:hidden flex items-center gap-2">
+          <div className="md:hidden flex flex-col items-center gap-1">
+            {/* 첫 번째 줄: 즐겨찾기 버튼 */}
             <button
               onClick={handleFavoriteClick}
               disabled={!hasToken && !onRequestToken}
-              className={`p-2 rounded-full transition-colors ${
+              className={`p-1.5 rounded-full transition-colors ${
                 !hasToken
                   ? 'text-gray-400 cursor-not-allowed'
                   : favoriteIds.has(currentCard.id)
@@ -294,12 +304,13 @@ export function CardViewer({
               aria-label={favoriteIds.has(currentCard.id) ? '즐겨찾기 제거' : '즐겨찾기 추가'}
               title={!hasToken ? 'GitHub 토큰을 설정해주세요' : undefined}
             >
-              <svg className="w-6 h-6" fill={favoriteIds.has(currentCard.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-[1.275rem] h-[1.275rem]" fill={favoriteIds.has(currentCard.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
               </svg>
             </button>
+            {/* 두 번째 줄: 이해도 버튼 */}
             {onSetUnderstanding && (
-              <>
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => onSetUnderstanding(currentCard.id, understandingItems.get(currentCard.id)?.level === 'low' ? null : 'low')}
                   disabled={!hasToken}
@@ -354,38 +365,40 @@ export function CardViewer({
                     className="w-4 h-4 object-contain" 
                   />
                 </button>
-                {hasToken && onToggleTrash && (
-                  <button
-                    onClick={() => onToggleTrash(currentCard.id)}
-                    className="p-2 rounded transition-colors"
-                    title={trashIds.has(currentCard.id) ? '삭제 대상 해제' : '삭제 대상으로 표시'}
-                  >
-                    <img 
-                      src={trashIds.has(currentCard.id) ? trashActiveIcon : trashInactiveIcon} 
-                      alt="trash" 
-                      className="w-6 h-6" 
-                    />
-                  </button>
-                )}
-              </>
+              </div>
             )}
           </div>
         )}
 
-        {/* 오른쪽: 전체 카드 관리 버튼 */}
-        {onOpenFavoritesManager && (
-          <button
-            onClick={onOpenFavoritesManager}
-            className="p-1 rounded transition-colors hover:bg-pokemon-hover"
-            title="전체 카드 관리"
-          >
-            <img 
-              src={dexIcon} 
-              alt="전체 카드 관리" 
-              className="w-6 h-6 object-contain" 
-            />
-          </button>
-        )}
+        {/* 오른쪽: 휴지통 버튼 및 전체 카드 관리 버튼 */}
+        <div className="flex items-center gap-2">
+          {currentCard && hasToken && onToggleTrash && (
+            <button
+              onClick={() => onToggleTrash(currentCard.id)}
+              className="md:hidden p-2 rounded transition-colors"
+              title={trashIds.has(currentCard.id) ? '삭제 대상 해제' : '삭제 대상으로 표시'}
+            >
+              <img 
+                src={trashIds.has(currentCard.id) ? trashActiveIcon : trashInactiveIcon} 
+                alt="trash" 
+                className="w-[1.8rem] h-[1.8rem]" 
+              />
+            </button>
+          )}
+          {onOpenFavoritesManager && (
+            <button
+              onClick={onOpenFavoritesManager}
+              className="p-1 rounded transition-colors hover:bg-pokemon-hover"
+              title="전체 카드 관리"
+            >
+              <img 
+                src={dexIcon} 
+                alt="전체 카드 관리" 
+                className="w-6 h-6 object-contain" 
+              />
+            </button>
+          )}
+        </div>
       </div>
       
       {/* 카드 컴포넌트 */}
@@ -427,5 +440,5 @@ export function CardViewer({
       </div>
     </div>
   );
-}
+});
 

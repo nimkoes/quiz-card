@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react';
 import type { Card, UnderstandingLevel } from '../types';
-import trashInactiveIcon from '../assets/trash-inactive.svg';
-import trashActiveIcon from '../assets/trash-active.svg';
+import trashInactiveIcon from '../assets/trash-inactive.png';
+import trashActiveIcon from '../assets/trash-active.png';
 import understandingLowIcon from '../assets/하.webp';
 import understandingMediumIcon from '../assets/중.webp';
 import understandingHighIcon from '../assets/상.webp';
@@ -558,7 +558,7 @@ export function CardComponent({
               <img 
                 src={isTrash ? trashActiveIcon : trashInactiveIcon} 
                 alt="trash" 
-                className="w-6 h-6" 
+                className="w-[1.8rem] h-[1.8rem]" 
               />
             </button>
           )}

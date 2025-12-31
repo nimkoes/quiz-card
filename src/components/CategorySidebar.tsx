@@ -4,6 +4,7 @@ import understandingLowIcon from '../assets/하.webp';
 import understandingMediumIcon from '../assets/중.webp';
 import understandingHighIcon from '../assets/상.webp';
 import titleIcon from '../assets/title.webp';
+import trashInactiveIcon from '../assets/trash-inactive.png';
 
 interface CategorySidebarProps {
   categories: Category[];
@@ -281,13 +282,18 @@ export function CategorySidebar({
             </label>
             <button
               onClick={() => onTrashFilterModeChange(trashFilterMode === 'trash' ? 'all' : 'trash')}
-              className={`w-full px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
+              className={`w-full px-3 py-2 rounded-lg text-sm transition-colors font-bold flex items-center justify-center ${
                 trashFilterMode === 'trash'
                   ? 'bg-pokemon-blue text-white'
                   : 'bg-pokemon-card text-pokemon-text hover:bg-pokemon-hover border-2 border-pokemon-border'
               }`}
+              title="휴지통"
             >
-              🗑
+              <img 
+                src={trashInactiveIcon} 
+                alt="휴지통" 
+                className="w-5 h-5 object-contain" 
+              />
             </button>
           </div>
         )}
