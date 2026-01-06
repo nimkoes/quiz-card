@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as gist from '../utils/gist';
+import { migrateCardId } from '../utils/migration';
 import type { FavoriteItem } from '../types';
 
 export function useFavorites() {
@@ -36,11 +37,36 @@ export function useFavorites() {
         const favorites = await gist.getGist(token, id);
         const ids = new Set<string>();
         const items = new Map<string, FavoriteItem>();
+        let needsMigration = false;
+        const migratedFavorites: FavoriteItem[] = [];
         
         favorites.forEach(item => {
-          ids.add(item.cardId);
-          items.set(item.cardId, item);
+          // 마이그레이션이 필요한지 확인 (year가 없는 형식인지 체크)
+          const migratedCardId = migrateCardId(item.cardId);
+          if (migratedCardId && migratedCardId !== item.cardId) {
+            // 마이그레이션이 필요한 경우
+            needsMigration = true;
+            migratedFavorites.push({
+              cardId: migratedCardId,
+              addedAt: item.addedAt,
+            });
+            ids.add(migratedCardId);
+            items.set(migratedCardId, {
+              cardId: migratedCardId,
+              addedAt: item.addedAt,
+            });
+          } else {
+            // 이미 새 형식이거나 마이그레이션 불가능한 경우
+            ids.add(item.cardId);
+            items.set(item.cardId, item);
+            migratedFavorites.push(item);
+          }
         });
+        
+        // 마이그레이션이 필요한 경우 Gist 업데이트
+        if (needsMigration) {
+          await gist.updateGist(token, id, migratedFavorites);
+        }
         
         setFavoriteIds(ids);
         setFavoriteItems(items);

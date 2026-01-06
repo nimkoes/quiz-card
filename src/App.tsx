@@ -79,34 +79,41 @@ function App() {
       cardsByCategory.forEach((categoryCards) => {
         // 날짜가 있는 카드들만 필터링
         const cardsWithDate = categoryCards.filter(card => 
+          card.year !== undefined &&
           card.month !== undefined && 
           card.day !== undefined && 
+          typeof card.year === 'number' &&
           typeof card.month === 'number' && 
           typeof card.day === 'number'
         );
         
         if (cardsWithDate.length > 0) {
-          // 고유한 날짜 추출 (month-day 조합)
+          // 고유한 날짜 추출 (year-month-day 조합)
           const uniqueDates = new Set<string>();
           cardsWithDate.forEach(card => {
-            if (card.month !== undefined && card.day !== undefined) {
-              uniqueDates.add(`${card.month}-${card.day}`);
+            if (card.year !== undefined && card.month !== undefined && card.day !== undefined) {
+              uniqueDates.add(`${card.year}-${card.month}-${card.day}`);
             }
           });
           
           // 날짜를 정렬하여 최근 7개 선택
-          // 날짜를 month-day 형식으로 정렬 (월이 크고, 같은 월이면 일이 큰 순서)
+          // 날짜를 year-month-day 형식으로 정렬 (연도 우선, 월, 일 순서)
           const sortedDates = Array.from(uniqueDates)
             .map(dateStr => {
-              const [month, day] = dateStr.split('-').map(Number);
-              return { month, day, key: dateStr };
+              const [year, month, day] = dateStr.split('-').map(Number);
+              return { year, month, day, key: dateStr };
             })
-            .filter(d => !isNaN(d.month) && !isNaN(d.day)) // 유효한 날짜만
+            .filter(d => !isNaN(d.year) && !isNaN(d.month) && !isNaN(d.day)) // 유효한 날짜만
             .sort((a, b) => {
-              // 먼저 월 비교, 같으면 일 비교
+              // 먼저 연도 비교
+              if (a.year !== b.year) {
+                return b.year - a.year; // 내림차순 (큰 연도가 앞)
+              }
+              // 같은 연도면 월 비교
               if (a.month !== b.month) {
                 return b.month - a.month; // 내림차순 (큰 월이 앞)
               }
+              // 같은 월이면 일 비교
               return b.day - a.day; // 내림차순 (큰 일이 앞)
             })
             .slice(0, 7) // 최근 7개 날짜
@@ -114,8 +121,8 @@ function App() {
           
           // 선택된 날짜의 카드만 필터링
           const categoryFilteredCards = cardsWithDate.filter(card => {
-            if (card.month !== undefined && card.day !== undefined) {
-              const dateKey = `${card.month}-${card.day}`;
+            if (card.year !== undefined && card.month !== undefined && card.day !== undefined) {
+              const dateKey = `${card.year}-${card.month}-${card.day}`;
               return sortedDates.includes(dateKey);
             }
             return false;

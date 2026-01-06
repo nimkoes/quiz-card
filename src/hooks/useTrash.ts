@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as gist from '../utils/gist';
+import { migrateCardId } from '../utils/migration';
 import type { TrashItem } from '../types';
 
 export function useTrash() {
@@ -36,11 +37,36 @@ export function useTrash() {
         const trash = await gist.getTrashGist(token, id);
         const ids = new Set<string>();
         const items = new Map<string, TrashItem>();
+        let needsMigration = false;
+        const migratedTrash: TrashItem[] = [];
         
         trash.forEach(item => {
-          ids.add(item.cardId);
-          items.set(item.cardId, item);
+          // 마이그레이션이 필요한지 확인 (year가 없는 형식인지 체크)
+          const migratedCardId = migrateCardId(item.cardId);
+          if (migratedCardId && migratedCardId !== item.cardId) {
+            // 마이그레이션이 필요한 경우
+            needsMigration = true;
+            migratedTrash.push({
+              cardId: migratedCardId,
+              addedAt: item.addedAt,
+            });
+            ids.add(migratedCardId);
+            items.set(migratedCardId, {
+              cardId: migratedCardId,
+              addedAt: item.addedAt,
+            });
+          } else {
+            // 이미 새 형식이거나 마이그레이션 불가능한 경우
+            ids.add(item.cardId);
+            items.set(item.cardId, item);
+            migratedTrash.push(item);
+          }
         });
+        
+        // 마이그레이션이 필요한 경우 Gist 업데이트
+        if (needsMigration) {
+          await gist.updateTrashGist(token, id, migratedTrash);
+        }
         
         setTrashIds(ids);
         setTrashItems(items);

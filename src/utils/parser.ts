@@ -31,19 +31,20 @@ export function extractDateFromFilename(filename: string): { month: number; day:
 
 /**
  * 날짜 구분자에서 날짜 정보를 추출합니다.
- * ===============11/21 형식: month와 day 추출
+ * ===============2025/11/21 형식: year, month, day 추출
  * 날짜 정보가 없으면 null 반환
  */
-function extractDateFromSeparator(line: string): { month: number; day: number } | null {
+function extractDateFromSeparator(line: string): { year: number; month: number; day: number } | null {
   // 정확히 15개의 = 뒤에 날짜가 오는 패턴
   // 앞뒤 공백은 무시 (trimmedLine으로 이미 처리됨)
-  const match = line.match(/^={15}(\d+)\/(\d+)$/);
+  const match = line.match(/^={15}(\d{4})\/(\d+)\/(\d+)$/);
   if (match) {
-    const month = parseInt(match[1], 10);
-    const day = parseInt(match[2], 10);
-    // 유효한 날짜 범위 확인 (1-12월, 1-31일)
-    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-      return { month, day };
+    const year = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10);
+    const day = parseInt(match[3], 10);
+    // 유효한 날짜 범위 확인 (2020-2030년, 1-12월, 1-31일)
+    if (year >= 2020 && year <= 2030 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return { year, month, day };
     }
   }
   return null;
@@ -57,8 +58,8 @@ export function parseMarkdown(content: string, category: string, filename: strin
   const lines = content.split('\n');
   
   let currentCard: { content: string[]; explanation?: string } | null = null;
-  let currentDate: { month: number; day: number } | null = null;
-  let dateCardIndex = new Map<string, number>(); // 날짜별 카드 인덱스 관리
+  let currentDate: { year: number; month: number; day: number } | null = null;
+  const dateCardIndex = new Map<string, number>(); // 날짜별 카드 인덱스 관리
   let inCard = false;
   let inExplanation = false;
   
@@ -90,14 +91,14 @@ export function parseMarkdown(content: string, category: string, filename: strin
         
         if (content) {
           // 날짜별 카드 인덱스 가져오기 또는 초기화
-          const dateKey = currentDate ? `${currentDate.month}-${currentDate.day}` : 'no-date';
+          const dateKey = currentDate ? `${currentDate.year}-${currentDate.month}-${currentDate.day}` : 'no-date';
           const cardIndex = dateCardIndex.get(dateKey) || 0;
           dateCardIndex.set(dateKey, cardIndex + 1);
           
           // 카드 ID 생성
           let cardId: string;
           if (currentDate) {
-            cardId = `${category}-${currentDate.month}-${currentDate.day}-${cardIndex}`;
+            cardId = `${category}-${currentDate.year}-${currentDate.month}-${currentDate.day}-${cardIndex}`;
           } else {
             cardId = `${category}-${cardIndex}`;
           }
@@ -109,6 +110,7 @@ export function parseMarkdown(content: string, category: string, filename: strin
             content,
             explanation: explanation || undefined,
             index: cardIndex,
+            year: currentDate?.year,
             month: currentDate?.month,
             day: currentDate?.day,
           });

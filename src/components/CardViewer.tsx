@@ -252,10 +252,10 @@ export const CardViewer = forwardRef<CardViewerHandle, CardViewerProps>(({
         <div className="flex items-center gap-3">
           {/* 모바일: 두 줄로 표시 */}
           <div className="md:hidden flex flex-col">
-            {currentCard && currentCard.month !== undefined && currentCard.day !== undefined && (
+            {currentCard && currentCard.year !== undefined && currentCard.month !== undefined && currentCard.day !== undefined && (
               <div className="text-sm text-pokemon-text font-bold flex items-center gap-1">
                 <img src={calendarIcon} alt="calendar" className="w-[1.3rem] h-[1.3rem]" />
-                {currentCard.month} / {currentCard.day}
+                {currentCard.year} / {currentCard.month} / {currentCard.day}
               </div>
             )}
             <div className="text-sm text-pokemon-text font-bold flex items-center gap-1">
@@ -267,10 +267,10 @@ export const CardViewer = forwardRef<CardViewerHandle, CardViewerProps>(({
           <div className="hidden md:flex items-center gap-1 text-sm text-pokemon-text font-bold">
             <img src={pokeballIcon} alt="pokeball" className="w-[1.3rem] h-[1.3rem]" />
             {currentIndex + 1} / {filteredCards.length}
-            {currentCard && currentCard.month !== undefined && currentCard.day !== undefined && (
+            {currentCard && currentCard.year !== undefined && currentCard.month !== undefined && currentCard.day !== undefined && (
               <span className="ml-2 flex items-center gap-1">
                 <img src={calendarIcon} alt="calendar" className="w-[1.3rem] h-[1.3rem]" />
-                {currentCard.month} / {currentCard.day}
+                {currentCard.year} / {currentCard.month} / {currentCard.day}
               </span>
             )}
           </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as gist from '../utils/gist';
+import { migrateCardId } from '../utils/migration';
 import type { UnderstandingItem, UnderstandingLevel } from '../types';
 
 export function useUnderstandings() {
@@ -34,10 +35,36 @@ export function useUnderstandings() {
       if (id) {
         const understandings = await gist.getUnderstandingsGist(token, id);
         const items = new Map<string, UnderstandingItem>();
+        let needsMigration = false;
+        const migratedUnderstandings: UnderstandingItem[] = [];
         
         understandings.forEach(item => {
-          items.set(item.cardId, item);
+          // 마이그레이션이 필요한지 확인 (year가 없는 형식인지 체크)
+          const migratedCardId = migrateCardId(item.cardId);
+          if (migratedCardId && migratedCardId !== item.cardId) {
+            // 마이그레이션이 필요한 경우
+            needsMigration = true;
+            migratedUnderstandings.push({
+              cardId: migratedCardId,
+              level: item.level,
+              updatedAt: item.updatedAt,
+            });
+            items.set(migratedCardId, {
+              cardId: migratedCardId,
+              level: item.level,
+              updatedAt: item.updatedAt,
+            });
+          } else {
+            // 이미 새 형식이거나 마이그레이션 불가능한 경우
+            items.set(item.cardId, item);
+            migratedUnderstandings.push(item);
+          }
         });
+        
+        // 마이그레이션이 필요한 경우 Gist 업데이트
+        if (needsMigration) {
+          await gist.updateUnderstandingsGist(token, id, migratedUnderstandings);
+        }
         
         setUnderstandingItems(items);
       } else {
