@@ -255,7 +255,7 @@ export const CardViewer = forwardRef<CardViewerHandle, CardViewerProps>(({
             {currentCard && currentCard.year !== undefined && currentCard.month !== undefined && currentCard.day !== undefined && (
               <div className="text-sm text-pokemon-text font-bold flex items-center gap-1">
                 <img src={calendarIcon} alt="calendar" className="w-[1.3rem] h-[1.3rem]" />
-                {currentCard.year} / {currentCard.month} / {currentCard.day}
+                {currentCard.year % 100} / {currentCard.month} / {currentCard.day}
               </div>
             )}
             <div className="text-sm text-pokemon-text font-bold flex items-center gap-1">

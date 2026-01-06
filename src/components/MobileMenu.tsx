@@ -221,7 +221,7 @@ export function MobileMenu({
                 <button
                     onClick={() => {
                       if (hasToken) {
-                        onFavoriteFilterModeChange('favorites');
+                        onFavoriteFilterModeChange(favoriteFilterMode === 'favorites' ? 'all' : 'favorites');
                       } else {
                         onOpenTokenSettings();
                       }
@@ -239,7 +239,7 @@ export function MobileMenu({
                   즐겨찾기
                 </button>
                 <button
-                    onClick={() => onFavoriteFilterModeChange('normal')}
+                    onClick={() => onFavoriteFilterModeChange(favoriteFilterMode === 'normal' ? 'all' : 'normal')}
                     className={`flex-1 px-3 py-1 rounded-lg text-sm transition-colors ${
                         favoriteFilterMode === 'normal'
                             ? 'bg-pokemon-blue text-white'

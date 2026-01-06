@@ -190,7 +190,7 @@ export function CategorySidebar({
             <button
               onClick={() => {
                 if (hasToken) {
-                  onFavoriteFilterModeChange('favorites');
+                  onFavoriteFilterModeChange(favoriteFilterMode === 'favorites' ? 'all' : 'favorites');
                 } else {
                   onOpenTokenSettings();
                 }
@@ -208,7 +208,7 @@ export function CategorySidebar({
               즐겨찾기
             </button>
             <button
-              onClick={() => onFavoriteFilterModeChange('normal')}
+              onClick={() => onFavoriteFilterModeChange(favoriteFilterMode === 'normal' ? 'all' : 'normal')}
               className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors font-bold ${
                 favoriteFilterMode === 'normal'
                   ? 'bg-pokemon-blue text-white'
